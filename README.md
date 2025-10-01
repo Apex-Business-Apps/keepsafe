@@ -1,73 +1,45 @@
-# Welcome to your Lovable project
+# KeepSafe - Household Inventory & Recall Management
 
-## Project info
+A progressive web app for managing household items, tracking warranties, and monitoring product recalls.
 
-**URL**: https://lovable.dev/projects/b6763f92-d5e0-4abd-8e0c-e9eb9c4e7670
+## Features
 
-## How can I edit this code?
+- 📦 **Item Management**: Track household items with details like brand, purchase date, warranty, price, serial numbers
+- 📷 **Receipt Storage**: Upload and store receipt photos securely
+- 🔍 **Barcode Scanning**: Scan product barcodes using your device camera
+- ⚠️ **Recall Monitoring**: Automatic checks against CPSC and Health Canada recall databases
+- 📄 **PDF Export**: Generate comprehensive PDF inventory reports
+- 🔐 **Secure Authentication**: User accounts with email/password authentication
+- 📱 **Progressive Web App**: Install on your device for offline access
 
-There are several ways of editing your application.
+## Quick Start
 
-**Use Lovable**
+```bash
+# Install dependencies
+npm install
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/b6763f92-d5e0-4abd-8e0c-e9eb9c4e7670) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Visit `http://localhost:8080` and create an account at `/auth`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Project Structure
 
-**Use GitHub Codespaces**
+- **Frontend**: React + Vite + TypeScript + Tailwind CSS
+- **Backend**: Supabase (Database, Auth, Storage, Edge Functions)
+- **Security**: RLS policies, input validation (Zod), secure authentication
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Edge Functions
 
-## What technologies are used for this project?
+- **check-recalls**: `https://aljdaazlgjcfwirqfjuc.supabase.co/functions/v1/check-recalls`
+- **ingest-hc-rss**: `https://aljdaazlgjcfwirqfjuc.supabase.co/functions/v1/ingest-hc-rss`
 
-This project is built with:
+## Documentation
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- See `SECURITY.md` for security considerations
+- PWA manifest at `/manifest.webmanifest`
 
-## How can I deploy this project?
+## License
 
-Simply open [Lovable](https://lovable.dev/projects/b6763f92-d5e0-4abd-8e0c-e9eb9c4e7670) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+MIT

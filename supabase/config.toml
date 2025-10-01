@@ -1,1 +1,7 @@
 project_id = "aljdaazlgjcfwirqfjuc"
+
+[functions.check-recalls]
+verify_jwt = false
+
+[functions.ingest-hc-rss]
+verify_jwt = false

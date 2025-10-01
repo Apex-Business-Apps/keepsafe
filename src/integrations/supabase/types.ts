@@ -14,7 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      items: {
+        Row: {
+          barcode: string | null
+          brand: string | null
+          category: string | null
+          created_at: string | null
+          id: string
+          name: string
+          notes: string | null
+          price: number | null
+          purchase_date: string | null
+          recall_match: boolean | null
+          recall_url: string | null
+          receipt_photo_url: string | null
+          serial_number: string | null
+          updated_at: string | null
+          user_id: string | null
+          warranty_months: number | null
+        }
+        Insert: {
+          barcode?: string | null
+          brand?: string | null
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          price?: number | null
+          purchase_date?: string | null
+          recall_match?: boolean | null
+          recall_url?: string | null
+          receipt_photo_url?: string | null
+          serial_number?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          warranty_months?: number | null
+        }
+        Update: {
+          barcode?: string | null
+          brand?: string | null
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          price?: number | null
+          purchase_date?: string | null
+          recall_match?: boolean | null
+          recall_url?: string | null
+          receipt_photo_url?: string | null
+          serial_number?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          warranty_months?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
