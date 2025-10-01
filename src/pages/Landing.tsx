@@ -55,7 +55,7 @@ const Landing = () => {
               <Shield className="h-9 w-9 text-primary drop-shadow-lg" />
               <div className="absolute inset-0 glow-effect rounded-full opacity-50" />
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
+            <span className="text-2xl font-bold text-primary">
               KeepSafe
             </span>
           </div>
@@ -84,7 +84,7 @@ const Landing = () => {
           <h1 className="text-6xl md:text-7xl font-bold text-foreground mb-8 leading-tight text-balance">
             Your Home Inventory,
             <br />
-            <span className="gradient-primary bg-clip-text text-transparent">
+            <span className="text-primary">
               Safe & Organized
             </span>
           </h1>
@@ -115,7 +115,7 @@ const Landing = () => {
           <div className="grid grid-cols-3 gap-12 max-w-3xl mx-auto pt-12 border-t border-border/50">
             {stats.map((stat) => (
               <div key={stat.label} className="group">
-                <div className="text-4xl md:text-5xl font-bold gradient-primary bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform">
+                <div className="text-4xl md:text-5xl font-bold text-primary mb-2 group-hover:scale-110 transition-transform">
                   {stat.value}
                 </div>
                 <div className="text-sm text-muted-foreground font-medium">{stat.label}</div>
@@ -130,7 +130,7 @@ const Landing = () => {
         <div className="container mx-auto max-w-7xl">
           <div className="text-center mb-20">
             <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-6 text-balance">
-              Everything You Need to <span className="gradient-accent bg-clip-text text-transparent">Stay Protected</span>
+              Everything You Need to <span className="text-accent">Stay Protected</span>
             </h2>
             <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto text-balance">
               Powerful features designed for busy families who want peace of mind
@@ -166,7 +166,7 @@ const Landing = () => {
       <section className="py-32 px-4">
         <div className="container mx-auto max-w-6xl text-center">
           <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-            Trusted by <span className="gradient-primary bg-clip-text text-transparent">Families Everywhere</span>
+            Trusted by <span className="text-primary">Families Everywhere</span>
           </h2>
           <p className="text-xl text-muted-foreground mb-16">Real stories from real people</p>
           
@@ -255,7 +255,7 @@ const Landing = () => {
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-3">
               <Shield className="h-7 w-7 text-primary" />
-              <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
+              <span className="text-xl font-bold text-primary">
                 KeepSafe
               </span>
             </div>
