@@ -19,14 +19,14 @@ const Index = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (!session) {
-        navigate("/auth");
+        navigate("/auth", { state: { from: "/dashboard" } });
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       if (!session) {
-        navigate("/auth");
+        navigate("/auth", { state: { from: "/dashboard" } });
       }
     });
 
