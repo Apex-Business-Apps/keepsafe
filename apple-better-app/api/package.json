@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node src/index.js",
     "start": "NODE_ENV=production node src/index.js",
-    "db:setup": "node -e \"const fs = require('fs'); const { Client } = require('pg'); const schema = fs.readFileSync('src/schema.sql', 'utf8'); const client = new Client({ host: 'localhost', port: 5432, database: 'keepsafe', user: 'postgres', password: 'postgres' }); client.connect().then(() => client.query(schema)).then(() => { console.log('Database setup complete'); client.end(); }).catch(console.error);\"",
+    "db:setup": "node src/db-setup.js",
     "test": "node test/basic.test.js",
     "lint": "echo 'Linting complete'"
   },

@@ -111,10 +111,9 @@ function Scanner({ onResult, onClose }) {
       if (hasBarcodeDetector) {
         startBarcodeDetection(stream);
       } else {
-        // Would integrate ZXing here
-        console.log('Using ZXing fallback (not implemented in this demo)');
-        setError('Camera scanning not available. Please type the barcode manually.');
-        setShowManualInput(true);
+        // Use ZXing fallback
+        console.log('Using ZXing fallback for barcode detection');
+        startZXingDetection(stream);
       }
     } catch (err) {
       console.error('Camera access denied:', err);
@@ -145,6 +144,38 @@ function Scanner({ onResult, onClose }) {
     video.addEventListener('loadedmetadata', () => {
       detectBarcodes();
     });
+  };
+
+  const startZXingDetection = async (stream) => {
+    try {
+      const { BrowserMultiFormatReader } = await import('@zxing/library');
+      const codeReader = new BrowserMultiFormatReader();
+      const video = videoRef.current;
+
+      const detectCode = async () => {
+        if (video && video.readyState === video.HAVE_ENOUGH_DATA) {
+          try {
+            const result = await codeReader.decodeFromVideoElement(video);
+            if (result) {
+              console.log('ZXing detected:', result.getText());
+              onResult(result.getText());
+              return;
+            }
+          } catch (err) {
+            // No code found in this frame, continue scanning
+          }
+        }
+        requestAnimationFrame(detectCode);
+      };
+
+      video.addEventListener('loadedmetadata', () => {
+        detectCode();
+      });
+    } catch (error) {
+      console.error('ZXing initialization failed:', error);
+      setError('Barcode scanning not available. Please type the barcode manually.');
+      setShowManualInput(true);
+    }
   };
 
   const stopScanning = () => {

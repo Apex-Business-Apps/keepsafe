@@ -296,11 +296,29 @@ function RecentItems({ items, onSearch, searchTerm, onFilter, filters }) {
               </p>
             )}
             
-            {item.warranty_months && (
-              <p style={{ fontSize: '14px', color: '#6b7280', margin: '4px 0' }}>
-                Warranty: {item.warranty_months} months
-              </p>
-            )}
+            {item.warranty_months && (() => {
+              const warrantyStatus = getWarrantyStatus(item);
+              if (!warrantyStatus) {
+                return (
+                  <p style={{ fontSize: '14px', color: '#6b7280', margin: '4px 0' }}>
+                    Warranty: {item.warranty_months} months
+                  </p>
+                );
+              }
+              
+              const statusColor = warrantyStatus.status === 'critical' ? '#dc2626' :
+                                 warrantyStatus.status === 'warning' ? '#d97706' :
+                                 warrantyStatus.status === 'expired' ? '#6b7280' : '#059669';
+              
+              return (
+                <p style={{ fontSize: '14px', color: statusColor, margin: '4px 0', fontWeight: '500' }}>
+                  {warrantyStatus.status === 'expired' ? 'Warranty expired' :
+                   warrantyStatus.status === 'critical' ? `⚠️ Warranty expires in ${warrantyStatus.daysLeft} days` :
+                   warrantyStatus.status === 'warning' ? `⚠️ Warranty expires in ${warrantyStatus.daysLeft} days` :
+                   `Warranty: ${item.warranty_months} months`}
+                </p>
+              );
+            })()}
           </div>
         ))}
       </div>
@@ -335,6 +353,23 @@ function Home() {
 
   const handleAddItem = () => {
     window.location.href = '/items';
+  };
+
+  // Calculate warranty status
+  const getWarrantyStatus = (item) => {
+    if (!item.purchase_date || !item.warranty_months) return null;
+    
+    const purchaseDate = new Date(item.purchase_date);
+    const warrantyEnd = new Date(purchaseDate);
+    warrantyEnd.setMonth(warrantyEnd.getMonth() + item.warranty_months);
+    
+    const now = new Date();
+    const daysLeft = Math.ceil((warrantyEnd - now) / (1000 * 60 * 60 * 24));
+    
+    if (daysLeft < 0) return { status: 'expired', daysLeft: 0 };
+    if (daysLeft <= 7) return { status: 'critical', daysLeft };
+    if (daysLeft <= 30) return { status: 'warning', daysLeft };
+    return { status: 'active', daysLeft };
   };
 
   if (loading) {

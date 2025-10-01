@@ -56,7 +56,14 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   
   // Handle API requests (network first, cache fallback)
-  if (url.pathname.startsWith('/api/') || url.port === '8080') {
+  // Check if request is to API server (different origin with port 8080)
+  const isApiRequest = url.pathname.startsWith('/api/') || 
+                       (url.hostname === 'localhost' && url.port === '8080') ||
+                       url.pathname === '/health' ||
+                       url.pathname === '/items' ||
+                       url.pathname.startsWith('/items/');
+  
+  if (isApiRequest) {
     event.respondWith(
       fetch(request)
         .then((response) => {
