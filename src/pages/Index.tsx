@@ -106,9 +106,23 @@ const Index = () => {
         </div>
       </header>
 
-      {/* CTA Button Section - placeholder for user's CTA */}
+      {/* CTA Section */}
       <div className="relative z-10 container mx-auto px-6 pt-6">
-        {/* CTA button will go here */}
+        <div className="text-center space-y-4">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/20 border border-accent/30">
+            <span className="text-lg">⚡</span>
+            <span className="text-sm font-semibold bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent">
+              Next-Gen Home Protection
+            </span>
+          </div>
+          <h2 className="text-5xl font-black">
+            <span className="text-foreground">Secure Your</span>
+            <br />
+            <span className="bg-gradient-to-r from-accent via-primary to-accent bg-clip-text text-transparent">
+              Entire Life
+            </span>
+          </h2>
+        </div>
       </div>
 
       <main className="relative z-10 container mx-auto px-6 py-6 space-y-10">
