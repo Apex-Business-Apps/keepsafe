@@ -16,6 +16,14 @@ const Index = () => {
   const { items, loading, addItem, deleteItem } = useItems(session?.user?.id);
 
   useEffect(() => {
+    // Dev mode bypass
+    if (import.meta.env.DEV) {
+      setSession({
+        user: { id: "dev-user", email: "dev@test.com" },
+      } as Session);
+      return;
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (!session) {
