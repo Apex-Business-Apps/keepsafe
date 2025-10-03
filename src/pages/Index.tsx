@@ -16,6 +16,16 @@ const Index = () => {
   const { items, loading, addItem, deleteItem } = useItems(session?.user?.id);
 
   useEffect(() => {
+    // Dev mode bypass - skip auth check
+    if (import.meta.env.DEV) {
+      // Create a mock session for dev mode
+      const mockSession = {
+        user: { id: 'dev-user-mock-id' }
+      } as Session;
+      setSession(mockSession);
+      return;
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (!session) {
