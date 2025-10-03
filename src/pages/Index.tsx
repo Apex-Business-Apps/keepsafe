@@ -75,7 +75,7 @@ const Index = () => {
       </div>
 
       <header className="relative z-10 glass-effect border-b border-primary/20">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+        <div className="container mx-auto px-6 py-4 flex justify-center items-center relative">
           <div className="flex items-center gap-3">
             <div className="relative">
               <div className="absolute inset-0 bg-accent/30 blur-xl rounded-full" />
@@ -85,7 +85,7 @@ const Index = () => {
               KeepSafe
             </h1>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 absolute right-6">
             <Button 
               onClick={handleExportPDF} 
               variant="outline"
