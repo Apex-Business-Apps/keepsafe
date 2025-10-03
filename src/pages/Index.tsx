@@ -75,7 +75,7 @@ const Index = () => {
       </div>
 
       <header className="relative z-10 glass-effect border-b border-primary/20">
-        <div className="container mx-auto px-6 py-4 flex justify-center items-center relative">
+        <div className="container mx-auto px-6 py-3 flex justify-center items-center relative">
           <div className="flex items-center gap-3">
             <div className="relative">
               <div className="absolute inset-0 bg-accent/30 blur-xl rounded-full" />
@@ -106,7 +106,12 @@ const Index = () => {
         </div>
       </header>
 
-      <main className="relative z-10 container mx-auto px-6 py-10 space-y-10">
+      {/* CTA Button Section - placeholder for user's CTA */}
+      <div className="relative z-10 container mx-auto px-6 pt-6">
+        {/* CTA button will go here */}
+      </div>
+
+      <main className="relative z-10 container mx-auto px-6 py-6 space-y-10">
         <div className="glass-effect border border-primary/20 rounded-2xl p-8 shadow-premium">
           <ItemForm onSubmit={addItem} userId={session.user.id} />
         </div>
