@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Shield } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { z } from "zod";
 
@@ -82,50 +82,74 @@ const Auth = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl">KeepSafe</CardTitle>
-          <CardDescription>
-            {isLogin ? "Sign in to your account" : "Create a new account"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleAuth} className="space-y-4">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4 relative overflow-hidden">
+      {/* Animated Background */}
+      <div className="fixed inset-0 gradient-hero opacity-50" />
+      <div className="fixed top-20 left-10 w-96 h-96 bg-primary/20 rounded-full blur-[100px] animate-pulse" />
+      <div className="fixed bottom-20 right-10 w-[500px] h-[500px] bg-accent/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
+      
+      <div className="w-full max-w-md relative z-10">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-3 mb-4">
+            <div className="relative">
+              <div className="absolute inset-0 bg-accent/30 blur-xl rounded-full" />
+              <Shield className="h-12 w-12 text-primary relative z-10" strokeWidth={2.5} />
+            </div>
+            <span className="text-4xl font-black bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              KeepSafe
+            </span>
+          </div>
+          <p className="text-muted-foreground font-medium">
+            {isLogin ? "Welcome back! Sign in to continue" : "Start protecting your home today"}
+          </p>
+        </div>
+
+        <div className="glass-effect border border-primary/20 rounded-2xl p-8 shadow-premium">
+          <form onSubmit={handleAuth} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-sm font-bold uppercase tracking-wide text-foreground">
+                Email
+              </Label>
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="h-12 border-primary/20 focus:border-accent focus:ring-accent/20 transition-all"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-sm font-bold uppercase tracking-wide text-foreground">
+                Password
+              </Label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                className="h-12 border-primary/20 focus:border-accent focus:ring-accent/20 transition-all"
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Processing..." : isLogin ? "Sign In" : "Sign Up"}
+            <Button 
+              type="submit" 
+              className="w-full h-12 gradient-accent hover:opacity-90 font-bold text-base neon-effect transition-all hover:scale-[1.02]" 
+              disabled={loading}
+            >
+              {loading ? "Processing..." : isLogin ? "Sign In" : "Create Account"}
             </Button>
           </form>
-          <div className="mt-4 text-center">
+          <div className="mt-6 text-center">
             <button
               onClick={() => setIsLogin(!isLogin)}
-              className="text-sm text-muted-foreground hover:text-foreground"
+              className="text-sm text-primary hover:text-accent font-semibold transition-colors underline-offset-4 hover:underline"
             >
-              {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+              {isLogin ? "Need an account? Sign up" : "Have an account? Sign in"}
             </button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };

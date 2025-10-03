@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Shield, Camera, FileText, AlertTriangle, Lock, Smartphone } from "lucide-react";
+import { Shield, Camera, FileText, AlertTriangle, Lock, Smartphone, Zap, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Landing = () => {
@@ -46,23 +46,31 @@ const Landing = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-hidden">
+      {/* Animated Background Grid */}
+      <div className="fixed inset-0 opacity-20 pointer-events-none">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `linear-gradient(hsl(var(--primary) / 0.1) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary) / 0.1) 1px, transparent 1px)`,
+          backgroundSize: '50px 50px'
+        }} />
+      </div>
+
       {/* Header */}
-      <header className="sticky top-0 z-50 backdrop-blur-lg bg-background/80 border-b border-border/50">
-        <div className="container mx-auto px-6 py-5 flex items-center justify-between">
+      <header className="sticky top-0 z-50 glass-effect border-b border-primary/20">
+        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <Shield className="h-9 w-9 text-primary drop-shadow-lg" />
-              <div className="absolute inset-0 glow-effect rounded-full opacity-50" />
+              <div className="absolute inset-0 bg-accent/30 blur-xl rounded-full" />
+              <Shield className="h-8 w-8 text-primary relative z-10" strokeWidth={2.5} />
             </div>
-            <span className="text-2xl font-bold text-primary">
+            <span className="text-2xl font-black tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               KeepSafe
             </span>
           </div>
           <Button 
             variant="outline" 
             onClick={() => navigate("/auth")}
-            className="border-primary/20 hover:border-primary/40 hover:bg-primary/5"
+            className="border-primary/30 hover:border-accent hover:bg-accent/10 hover:text-accent-foreground font-semibold transition-all"
           >
             Sign In
           </Button>
@@ -70,55 +78,59 @@ const Landing = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="relative py-32 px-4 text-center gradient-hero overflow-hidden">
-        {/* Decorative elements */}
-        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
+      <section className="relative py-24 px-4 gradient-hero overflow-hidden">
+        {/* Animated orbs */}
+        <div className="absolute top-20 left-10 w-96 h-96 bg-primary/20 rounded-full blur-[100px] animate-pulse" />
+        <div className="absolute bottom-20 right-10 w-[500px] h-[500px] bg-accent/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
         
-        <div className="container mx-auto max-w-5xl relative z-10">
-          <div className="inline-flex items-center gap-2 mb-6 px-6 py-2.5 bg-primary/10 backdrop-blur-sm text-primary rounded-full text-sm font-semibold border border-primary/20 shadow-premium">
-            <Shield className="h-4 w-4" />
-            Protect Your Home & Family
+        <div className="container mx-auto max-w-6xl relative z-10">
+          <div className="inline-flex items-center gap-2 mb-6 px-5 py-2 glass-effect rounded-full text-sm font-bold border border-accent/30 neon-effect">
+            <Zap className="h-4 w-4 text-accent" />
+            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              Next-Gen Home Protection
+            </span>
           </div>
           
-          <h1 className="text-6xl md:text-7xl font-bold text-foreground mb-8 leading-tight text-balance">
-            Your Home Inventory,
+          <h1 className="text-7xl md:text-8xl font-black text-foreground mb-6 leading-[0.9] text-balance">
+            Secure Your
             <br />
-            <span className="text-primary">
-              Safe & Organized
+            <span className="bg-gradient-to-r from-primary via-primary-glow to-accent bg-clip-text text-transparent inline-block">
+              Entire Life
             </span>
           </h1>
           
-          <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed text-balance">
-            Track your belongings, monitor product recalls, and export everything for insurance claims. 
-            The smart way to protect what matters most.
+          <p className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-2xl leading-relaxed font-medium">
+            Advanced inventory system with AI-powered recall monitoring. 
+            Your belongings, <span className="text-accent font-bold">instantly protected</span>.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-5 justify-center mb-16">
+          <div className="flex flex-col sm:flex-row gap-4 mb-20">
             <Button 
               size="lg" 
               onClick={() => navigate("/auth")} 
-              className="text-lg h-16 px-10 gradient-primary hover:opacity-90 shadow-premium glow-effect transition-all duration-300 hover:scale-105"
+              className="text-lg h-14 px-10 gradient-accent hover:opacity-90 shadow-premium neon-effect transition-all duration-300 hover:scale-105 font-bold"
             >
-              Get Started Free
+              Start Free Trial
+              <Zap className="ml-2 h-5 w-5" />
             </Button>
             <Button 
               size="lg" 
               variant="outline" 
-              className="text-lg h-16 px-10 border-2 border-primary/30 hover:border-primary hover:bg-primary/5 transition-all duration-300"
+              className="text-lg h-14 px-10 border-2 border-primary/40 glass-effect hover:border-primary hover:bg-primary/10 transition-all duration-300 font-semibold group"
             >
-              Watch Demo
+              <Eye className="mr-2 h-5 w-5 group-hover:text-primary transition-colors" />
+              See It Live
             </Button>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-12 max-w-3xl mx-auto pt-12 border-t border-border/50">
-            {stats.map((stat) => (
-              <div key={stat.label} className="group">
-                <div className="text-4xl md:text-5xl font-bold text-primary mb-2 group-hover:scale-110 transition-transform">
+          {/* Stats with unique styling */}
+          <div className="grid grid-cols-3 gap-8 max-w-3xl pt-8 border-t border-primary/20">
+            {stats.map((stat, i) => (
+              <div key={stat.label} className="group text-center">
+                <div className="text-5xl md:text-6xl font-black mb-2 bg-gradient-to-br from-primary to-accent bg-clip-text text-transparent group-hover:scale-110 transition-transform">
                   {stat.value}
                 </div>
-                <div className="text-sm text-muted-foreground font-medium">{stat.label}</div>
+                <div className="text-xs uppercase tracking-widest text-muted-foreground font-bold">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -126,51 +138,52 @@ const Landing = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-32 px-4 bg-muted/30">
+      <section className="relative py-24 px-4 clip-diagonal bg-gradient-to-b from-muted/50 to-background">
         <div className="container mx-auto max-w-7xl">
-          <div className="text-center mb-20">
-            <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-6 text-balance">
-              Everything You Need to <span className="text-accent">Stay Protected</span>
+          <div className="text-center mb-16">
+            <div className="inline-block mb-4 px-4 py-1.5 glass-effect rounded-full border border-primary/20">
+              <span className="text-sm font-bold uppercase tracking-wider text-primary">Features</span>
+            </div>
+            <h2 className="text-5xl md:text-6xl font-black text-foreground mb-6 text-balance">
+              Built for <span className="text-accent">Maximum Protection</span>
             </h2>
-            <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto text-balance">
-              Powerful features designed for busy families who want peace of mind
-            </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, index) => (
-              <Card 
+              <div 
                 key={feature.title} 
-                className="group border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-premium bg-card/50 backdrop-blur-sm overflow-hidden relative"
-                style={{ animationDelay: `${index * 100}ms` }}
+                className="group relative glass-effect border border-primary/20 rounded-2xl p-8 hover:border-accent/50 transition-all duration-300 hover:shadow-premium hover:-translate-y-1 overflow-hidden"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <CardContent className="pt-8 pb-6 relative z-10">
-                  <div className="rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 w-16 h-16 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-md">
-                    <feature.icon className="h-7 w-7 text-primary" />
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="relative z-10">
+                  <div className="rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 w-14 h-14 flex items-center justify-center mb-5 group-hover:neon-effect transition-all duration-300">
+                    <feature.icon className="h-6 w-6 text-primary group-hover:text-accent transition-colors" strokeWidth={2.5} />
                   </div>
-                  <h3 className="text-2xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors">
+                  <h3 className="text-xl font-black text-foreground mb-3 group-hover:text-primary transition-colors">
                     {feature.title}
                   </h3>
-                  <p className="text-muted-foreground leading-relaxed">
+                  <p className="text-muted-foreground leading-relaxed text-sm">
                     {feature.description}
                   </p>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
       {/* Social Proof */}
-      <section className="py-32 px-4">
-        <div className="container mx-auto max-w-6xl text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-            Trusted by <span className="text-primary">Families Everywhere</span>
-          </h2>
-          <p className="text-xl text-muted-foreground mb-16">Real stories from real people</p>
+      <section className="py-24 px-4 bg-background">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-black text-foreground mb-4">
+              Loved by <span className="text-primary">Thousands</span>
+            </h2>
+            <p className="text-lg text-muted-foreground font-medium">Real results from real users</p>
+          </div>
           
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-6">
             {[
               {
                 quote: "KeepSafe saved me thousands when my house was burglarized. Had everything documented for insurance.",
@@ -188,79 +201,77 @@ const Landing = () => {
                 role: "Young Professional"
               }
             ].map((testimonial, index) => (
-              <Card 
+              <div 
                 key={index}
-                className="border-border/50 hover:border-primary/50 transition-all duration-300 bg-card/50 backdrop-blur-sm shadow-premium hover:shadow-lg hover:scale-105"
+                className="glass-effect border border-primary/20 rounded-2xl p-6 hover:border-accent/50 transition-all duration-300 hover:shadow-premium hover:-translate-y-1"
               >
-                <CardContent className="pt-8 pb-6">
-                  <div className="flex justify-center mb-4">
-                    {[...Array(5)].map((_, i) => (
-                      <svg key={i} className="w-5 h-5 text-accent fill-current" viewBox="0 0 20 20">
-                        <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                      </svg>
-                    ))}
-                  </div>
-                  <p className="text-muted-foreground italic mb-6 text-lg leading-relaxed">
-                    "{testimonial.quote}"
-                  </p>
-                  <div className="pt-4 border-t border-border/50">
-                    <p className="font-bold text-foreground text-lg">{testimonial.author}</p>
-                    <p className="text-sm text-muted-foreground">{testimonial.role}</p>
-                  </div>
-                </CardContent>
-              </Card>
+                <div className="flex gap-1 mb-4">
+                  {[...Array(5)].map((_, i) => (
+                    <svg key={i} className="w-4 h-4 text-accent fill-current" viewBox="0 0 20 20">
+                      <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
+                    </svg>
+                  ))}
+                </div>
+                <p className="text-foreground/90 mb-6 leading-relaxed font-medium">
+                  "{testimonial.quote}"
+                </p>
+                <div className="pt-4 border-t border-primary/10">
+                  <p className="font-bold text-foreground">{testimonial.author}</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">{testimonial.role}</p>
+                </div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="relative py-32 px-4 gradient-primary text-primary-foreground overflow-hidden">
-        {/* Decorative elements */}
-        <div className="absolute top-0 left-0 w-full h-full opacity-10">
-          <div className="absolute top-10 left-20 w-64 h-64 bg-white rounded-full blur-3xl" />
-          <div className="absolute bottom-10 right-20 w-80 h-80 bg-accent rounded-full blur-3xl" />
+      <section className="relative py-24 px-4 gradient-primary text-primary-foreground overflow-hidden clip-diagonal">
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-10 left-20 w-96 h-96 bg-accent rounded-full blur-[100px]" />
+          <div className="absolute bottom-10 right-20 w-[500px] h-[500px] bg-background rounded-full blur-[120px]" />
         </div>
         
         <div className="container mx-auto max-w-5xl text-center relative z-10">
-          <h2 className="text-5xl md:text-6xl font-bold mb-6 text-balance">
-            Start Protecting Your Home Today
+          <h2 className="text-5xl md:text-6xl font-black mb-6 text-balance">
+            Ready to Protect Everything?
           </h2>
-          <p className="text-xl md:text-2xl mb-12 opacity-95 max-w-3xl mx-auto leading-relaxed text-balance">
-            Join thousands of families who sleep better knowing their belongings are tracked and protected.
+          <p className="text-xl md:text-2xl mb-10 opacity-95 max-w-3xl mx-auto leading-relaxed font-medium">
+            Join the security revolution. Start cataloging in under 5 minutes.
           </p>
           <Button 
             size="lg" 
             onClick={() => navigate("/auth")} 
-            className="text-lg h-16 px-12 bg-white text-primary hover:bg-white/90 shadow-premium hover:scale-105 transition-all duration-300 font-semibold"
+            className="text-lg h-16 px-12 bg-accent text-accent-foreground hover:bg-accent/90 shadow-premium neon-effect hover:scale-105 transition-all duration-300 font-black"
           >
-            Create Free Account
+            Start Now - It's Free
+            <Zap className="ml-2 h-5 w-5" />
           </Button>
-          <div className="flex items-center justify-center gap-6 mt-8 text-sm opacity-90">
+          <div className="flex items-center justify-center gap-6 mt-8 text-sm opacity-90 font-medium">
             <span className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
-              No credit card required
+              No credit card
             </span>
             <span>•</span>
             <span>Free forever</span>
             <span>•</span>
-            <span>Cancel anytime</span>
+            <span>2min setup</span>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border/50 py-12 px-4 bg-muted/20">
+      <footer className="border-t border-primary/20 py-8 px-4 glass-effect">
         <div className="container mx-auto max-w-6xl">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-3">
-              <Shield className="h-7 w-7 text-primary" />
-              <span className="text-xl font-bold text-primary">
+              <Shield className="h-6 w-6 text-primary" strokeWidth={2.5} />
+              <span className="text-xl font-black bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 KeepSafe
               </span>
             </div>
-            <p className="text-sm text-muted-foreground">
-              © 2025 KeepSafe. Your home guardian. All rights reserved.
+            <p className="text-sm text-muted-foreground font-medium">
+              © 2025 KeepSafe. Advanced Protection Tech. All rights reserved.
             </p>
           </div>
         </div>

@@ -7,7 +7,7 @@ import { ItemList } from "@/components/ItemList";
 import { useItems } from "@/hooks/useItems";
 import { generatePDF } from "@/utils/pdfExport";
 import { toast } from "@/hooks/use-toast";
-import { Download, LogOut } from "lucide-react";
+import { Download, LogOut, Shield } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
 
 const Index = () => {
@@ -65,16 +65,40 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">KeepSafe</h1>
-          <div className="flex gap-2">
-            <Button onClick={handleExportPDF} variant="outline">
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Background Grid */}
+      <div className="fixed inset-0 opacity-10 pointer-events-none">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `linear-gradient(hsl(var(--primary) / 0.15) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary) / 0.15) 1px, transparent 1px)`,
+          backgroundSize: '40px 40px'
+        }} />
+      </div>
+
+      <header className="relative z-10 glass-effect border-b border-primary/20">
+        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className="absolute inset-0 bg-accent/30 blur-xl rounded-full" />
+              <Shield className="h-7 w-7 text-primary relative z-10" strokeWidth={2.5} />
+            </div>
+            <h1 className="text-2xl font-black bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              KeepSafe
+            </h1>
+          </div>
+          <div className="flex gap-3">
+            <Button 
+              onClick={handleExportPDF} 
+              variant="outline"
+              className="border-primary/30 hover:border-accent hover:bg-accent/10 font-semibold transition-all"
+            >
               <Download className="mr-2 h-4 w-4" />
-              Export Binder
+              Export
             </Button>
-            <Button onClick={handleSignOut} variant="ghost">
+            <Button 
+              onClick={handleSignOut} 
+              variant="ghost"
+              className="hover:bg-destructive/10 hover:text-destructive font-semibold transition-all"
+            >
               <LogOut className="mr-2 h-4 w-4" />
               Sign Out
             </Button>
@@ -82,20 +106,28 @@ const Index = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 space-y-8">
-        <ItemForm onSubmit={addItem} userId={session.user.id} />
+      <main className="relative z-10 container mx-auto px-6 py-10 space-y-10">
+        <div className="glass-effect border border-primary/20 rounded-2xl p-8 shadow-premium">
+          <ItemForm onSubmit={addItem} userId={session.user.id} />
+        </div>
         
         {loading ? (
-          <div className="text-center py-8">Loading...</div>
+          <div className="text-center py-16">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-primary/30 border-t-primary" />
+            <p className="mt-4 text-muted-foreground font-medium">Loading your items...</p>
+          </div>
         ) : (
-          <>
-            <div>
-              <h2 className="text-xl font-semibold mb-4">
-                Your Items ({items.length})
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-3xl font-black bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                Your Inventory
               </h2>
-              <ItemList items={items} onDelete={deleteItem} />
+              <div className="px-4 py-2 glass-effect rounded-full border border-primary/20">
+                <span className="text-sm font-bold text-primary">{items.length} Items</span>
+              </div>
             </div>
-          </>
+            <ItemList items={items} onDelete={deleteItem} />
+          </div>
         )}
       </main>
     </div>
