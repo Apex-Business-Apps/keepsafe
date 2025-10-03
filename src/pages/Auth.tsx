@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { trackEvent } from "@/lib/trackEvent";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Shield } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { Shield } from "lucide-react";
 import { z } from "zod";
 
 const authSchema = z.object({
@@ -65,6 +66,7 @@ const Auth = () => {
           },
         });
         if (error) throw error;
+        await trackEvent('signup', { email });
         toast({
           title: "Account created!",
           description: "Please check your email to verify your account.",

@@ -4,8 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ItemForm } from "@/components/ItemForm";
 import { ItemList } from "@/components/ItemList";
+import { ItemListSkeleton } from "@/components/LoadingSkeleton";
 import { useItems } from "@/hooks/useItems";
 import { generatePDF } from "@/utils/pdfExport";
+import { trackEvent } from "@/lib/trackEvent";
 import { toast } from "@/hooks/use-toast";
 import { Download, LogOut, Shield } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
@@ -58,6 +60,7 @@ const Index = () => {
 
     try {
       await generatePDF(items);
+      await trackEvent('binder_exported', { items_count: items.length }, session?.user?.id);
       toast({ title: "PDF exported successfully!" });
     } catch (error) {
       toast({
@@ -139,9 +142,13 @@ const Index = () => {
         </div>
         
         {loading ? (
-          <div className="text-center py-16">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-primary/30 border-t-primary" />
-            <p className="mt-4 text-muted-foreground font-medium">Loading your items...</p>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-3xl font-black bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                Your Inventory
+              </h2>
+            </div>
+            <ItemListSkeleton />
           </div>
         ) : (
           <div className="space-y-6">

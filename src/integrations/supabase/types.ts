@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      events: {
+        Row: {
+          id: number
+          name: string
+          props: Json | null
+          ts: string | null
+          user_id: string | null
+        }
+        Insert: {
+          id?: number
+          name: string
+          props?: Json | null
+          ts?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          id?: number
+          name?: string
+          props?: Json | null
+          ts?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       items: {
         Row: {
           barcode: string | null
@@ -71,9 +95,65 @@ export type Database = {
         }
         Relationships: []
       }
+      recalls: {
+        Row: {
+          brand: string
+          created_at: string | null
+          id: number
+          model: string
+          published_date: string | null
+          source: string
+          title: string
+          url: string
+        }
+        Insert: {
+          brand: string
+          created_at?: string | null
+          id?: number
+          model: string
+          published_date?: string | null
+          source: string
+          title: string
+          url: string
+        }
+        Update: {
+          brand?: string
+          created_at?: string | null
+          id?: number
+          model?: string
+          published_date?: string | null
+          source?: string
+          title?: string
+          url?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      v_activation: {
+        Row: {
+          first_item_at: string | null
+          items_count: number | null
+          last_item_at: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      v_paid_clicks: {
+        Row: {
+          paid_clicks: number | null
+          week: string | null
+        }
+        Relationships: []
+      }
+      v_pql: {
+        Row: {
+          items_count: number | null
+          last_recall_alert_seen: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never

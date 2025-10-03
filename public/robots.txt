@@ -1,14 +1,8 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
+# KeepSafe - Robots.txt
 User-agent: *
 Allow: /
+Disallow: /dashboard
+Disallow: /auth
+
+# Sitemap
+Sitemap: https://keepsafe.lovable.app/sitemap.xml

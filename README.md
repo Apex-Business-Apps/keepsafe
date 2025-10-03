@@ -1,45 +1,63 @@
-# KeepSafe - Household Inventory & Recall Management
+# KeepSafe - Home Inventory + Recall Guardian
 
-A progressive web app for managing household items, tracking warranties, and monitoring product recalls.
+**Track what you own. Get alerted to recalls. Protect your home.**
+
+Canada-first home inventory PWA with official product recall monitoring (CPSC, Health Canada).
 
 ## Features
 
-- 📦 **Item Management**: Track household items with details like brand, purchase date, warranty, price, serial numbers
+- 📦 **Item Management**: Catalog items with brand, model, serial, receipts, warranty tracking
 - 📷 **Receipt Storage**: Upload and store receipt photos securely
-- 🔍 **Barcode Scanning**: Scan product barcodes using your device camera
-- ⚠️ **Recall Monitoring**: Automatic checks against CPSC and Health Canada recall databases
-- 📄 **PDF Export**: Generate comprehensive PDF inventory reports
-- 🔐 **Secure Authentication**: User accounts with email/password authentication
-- 📱 **Progressive Web App**: Install on your device for offline access
+- ⚠️ **Recall Monitoring**: Auto-match against CPSC, Health Canada, EU Safety Gate databases
+- 📄 **Binder Export**: PDF export for insurance claims
+- 🔐 **Secure Authentication**: User accounts with email/password
+- 📱 **PWA**: Installable, offline-capable
+- 📊 **Metrics**: Custom analytics (no vendors)
+- 🔍 **SEO**: Programmatic recall pages, sitemap.xml
 
 ## Quick Start
 
 ```bash
-# Install dependencies
 npm install
-
-# Start development server
 npm run dev
 ```
 
-Visit `http://localhost:8080` and create an account at `/auth`
+Visit `http://localhost:8080`
 
-## Project Structure
+## Metrics & Analytics
 
-- **Frontend**: React + Vite + TypeScript + Tailwind CSS
-- **Backend**: Supabase (Database, Auth, Storage, Edge Functions)
-- **Security**: RLS policies, input validation (Zod), secure authentication
+### SQL Views
+- `v_activation` - Users with >=1 item
+- `v_pql` - Product Qualified Leads (>=8 items + recall_alert_seen)
+- `v_paid_clicks` - Count by week
 
-## Edge Functions
+### Weekly Funnel Query
+```sql
+SELECT date_trunc('week', ts) as week,
+  COUNT(DISTINCT CASE WHEN name = 'signup' THEN user_id END) as signups,
+  COUNT(DISTINCT CASE WHEN name = 'item_added' THEN user_id END) as activated,
+  COUNT(DISTINCT CASE WHEN name = 'recall_alert_seen' THEN user_id END) as engaged,
+  COUNT(DISTINCT CASE WHEN name = 'paid_click' THEN user_id END) as paid_clicks
+FROM events GROUP BY week ORDER BY week DESC;
+```
 
-- **check-recalls**: `https://aljdaazlgjcfwirqfjuc.supabase.co/functions/v1/check-recalls`
-- **ingest-hc-rss**: `https://aljdaazlgjcfwirqfjuc.supabase.co/functions/v1/ingest-hc-rss`
+## SEO
+- `/recalls/[brand]-[model]` - Dynamic recall pages
+- `/sitemap.xml` - Auto-generated via edge function
+- `/robots.txt` - Crawl rules
+- References: [Google Helpful Content](https://developers.google.com/search/docs/fundamentals/creating-helpful-content), [Sitemaps](https://www.sitemaps.org/protocol.html)
 
-## Documentation
+## Privacy & Security
+- Privacy Policy at `/privacy` (PIPEDA-compliant)
+- Rate limiting (60 req/min on events)
+- Security headers (CSP, X-Frame-Options, etc.)
+- RLS on all tables
+- See `SECURITY.md` for reporting vulnerabilities
 
-- See `SECURITY.md` for security considerations
-- PWA manifest at `/manifest.webmanifest`
+## Performance
+- Core Web Vitals monitoring (LCP < 2.5s, INP < 200ms, CLS < 0.1)
+- Loading skeletons
+- PWA with service worker caching
 
 ## License
-
 MIT

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { trackEvent } from "@/lib/trackEvent";
 import { toast } from "@/hooks/use-toast";
 
 export interface Item {
@@ -69,6 +70,7 @@ export const useItems = (userId: string | undefined) => {
     }
 
     toast({ title: "Item added successfully" });
+    await trackEvent('item_added', { name: item.name, category: item.category || 'uncategorized' }, userId);
     fetchItems();
     return data;
   };
