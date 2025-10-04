@@ -66,7 +66,8 @@ const Auth = () => {
           },
         });
         if (error) throw error;
-        await trackEvent('signup', { email });
+        // Track signup event (no PII)
+        await trackEvent('signup', { method: 'email' });
         toast({
           title: "Account created!",
           description: "Please check your email to verify your account.",

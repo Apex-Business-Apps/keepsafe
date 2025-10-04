@@ -54,7 +54,7 @@ export type Database = {
           receipt_photo_url: string | null
           serial_number: string | null
           updated_at: string | null
-          user_id: string | null
+          user_id: string
           warranty_months: number | null
         }
         Insert: {
@@ -72,7 +72,7 @@ export type Database = {
           receipt_photo_url?: string | null
           serial_number?: string | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id: string
           warranty_months?: number | null
         }
         Update: {
@@ -90,7 +90,7 @@ export type Database = {
           receipt_photo_url?: string | null
           serial_number?: string | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id?: string
           warranty_months?: number | null
         }
         Relationships: []
@@ -130,33 +130,33 @@ export type Database = {
       }
     }
     Views: {
-      v_activation: {
-        Row: {
-          first_item_at: string | null
-          items_count: number | null
-          last_item_at: string | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
-      v_paid_clicks: {
-        Row: {
-          paid_clicks: number | null
-          week: string | null
-        }
-        Relationships: []
-      }
-      v_pql: {
-        Row: {
-          items_count: number | null
-          last_recall_alert_seen: string | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_activation_metrics: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          first_item_at: string
+          items_count: number
+          last_item_at: string
+          user_id: string
+        }[]
+      }
+      get_paid_clicks_metrics: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          paid_clicks: number
+          week: string
+        }[]
+      }
+      get_pql_metrics: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          items_count: number
+          last_recall_alert_seen: string
+          user_id: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

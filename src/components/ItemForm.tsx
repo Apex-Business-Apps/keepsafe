@@ -87,6 +87,28 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
 
     let receiptUrl = "";
     if (receiptFile) {
+      // Validate file size (10MB max)
+      const maxSize = 10 * 1024 * 1024;
+      if (receiptFile.size > maxSize) {
+        toast({
+          title: "File too large",
+          description: "File size must be less than 10MB",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate file type (images only)
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/heic'];
+      if (!allowedTypes.includes(receiptFile.type)) {
+        toast({
+          title: "Invalid file type",
+          description: "Only image files (JPEG, PNG, WEBP) are allowed",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const fileExt = receiptFile.name.split(".").pop();
       const filePath = `${userId}/${Date.now()}.${fileExt}`;
       
@@ -103,8 +125,21 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
         return;
       }
 
-      const { data } = supabase.storage.from("receipts").getPublicUrl(filePath);
-      receiptUrl = data.publicUrl;
+      // Use signed URL for private bucket (expires in 24 hours)
+      const { data: signedUrlData, error: urlError } = await supabase.storage
+        .from("receipts")
+        .createSignedUrl(filePath, 86400);
+      
+      if (urlError) {
+        toast({
+          title: "Error generating receipt URL",
+          description: urlError.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      receiptUrl = signedUrlData.signedUrl;
     }
 
     await onSubmit({
