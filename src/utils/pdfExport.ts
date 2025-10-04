@@ -52,8 +52,16 @@ export const generatePDF = async (items: Item[]) => {
     const details = [];
     if (item.brand) details.push(`Brand: ${item.brand}`);
     if (item.category) details.push(`Category: ${item.category}`);
-    if (item.purchase_date)
-      details.push(`Purchased: ${format(new Date(item.purchase_date), "MMM dd, yyyy")}`);
+    if (item.purchase_date) {
+      try {
+        const date = new Date(item.purchase_date);
+        if (!isNaN(date.getTime())) {
+          details.push(`Purchased: ${format(date, "MMM dd, yyyy")}`);
+        }
+      } catch (err) {
+        console.warn("Invalid purchase date for item:", item.id, err);
+      }
+    }
     if (item.warranty_months) details.push(`Warranty: ${item.warranty_months} months`);
     if (item.price) details.push(`Price: $${item.price.toFixed(2)}`);
     if (item.serial_number) details.push(`Serial: ${item.serial_number}`);

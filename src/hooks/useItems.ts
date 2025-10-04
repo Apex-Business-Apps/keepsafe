@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { trackEvent } from "@/lib/trackEvent";
 import { toast } from "@/hooks/use-toast";
@@ -26,93 +26,145 @@ export const useItems = (userId: string | undefined) => {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchItems = async () => {
-    if (!userId) return;
+  const fetchItems = useCallback(async () => {
+    if (!userId) {
+      setItems([]);
+      setLoading(false);
+      return;
+    }
     
     setLoading(true);
-    const { data, error } = await supabase
-      .from("items")
-      .select("*")
-      .order("created_at", { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from("items")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-    if (error) {
-      toast({
-        title: "Error fetching items",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
-      setItems(data || []);
+      if (error) {
+        console.error("Error fetching items:", error);
+        toast({
+          title: "Error fetching items",
+          description: error.message,
+          variant: "destructive",
+        });
+        setItems([]);
+      } else {
+        setItems(data || []);
+      }
+    } catch (err) {
+      console.error("Unexpected error fetching items:", err);
+      setItems([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  };
+  }, [userId]);
 
   useEffect(() => {
     fetchItems();
-  }, [userId]);
+  }, [fetchItems]);
 
   const addItem = async (item: Omit<Item, "id" | "user_id" | "created_at" | "updated_at">) => {
-    if (!userId) return;
-
-    const { data, error } = await supabase
-      .from("items")
-      .insert([{ ...item, user_id: userId }])
-      .select()
-      .single();
-
-    if (error) {
+    if (!userId) {
       toast({
-        title: "Error adding item",
-        description: error.message,
+        title: "Authentication required",
+        description: "Please sign in to add items",
         variant: "destructive",
       });
       return null;
     }
 
-    toast({ title: "Item added successfully" });
-    await trackEvent('item_added', { name: item.name, category: item.category || 'uncategorized' }, userId);
-    fetchItems();
-    return data;
+    try {
+      const { data, error } = await supabase
+        .from("items")
+        .insert([{ ...item, user_id: userId }])
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error adding item:", error);
+        toast({
+          title: "Error adding item",
+          description: error.message,
+          variant: "destructive",
+        });
+        return null;
+      }
+
+      toast({ title: "Item added successfully" });
+      await trackEvent('item_added', { name: item.name, category: item.category || 'uncategorized' }, userId);
+      await fetchItems();
+      return data;
+    } catch (err) {
+      console.error("Unexpected error adding item:", err);
+      toast({
+        title: "Error adding item",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+      return null;
+    }
   };
 
   const updateItem = async (id: string, updates: Partial<Item>) => {
-    const { error } = await supabase
-      .from("items")
-      .update(updates)
-      .eq("id", id);
+    try {
+      const { error } = await supabase
+        .from("items")
+        .update(updates)
+        .eq("id", id);
 
-    if (error) {
+      if (error) {
+        console.error("Error updating item:", error);
+        toast({
+          title: "Error updating item",
+          description: error.message,
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      toast({ title: "Item updated successfully" });
+      await fetchItems();
+      return true;
+    } catch (err) {
+      console.error("Unexpected error updating item:", err);
       toast({
         title: "Error updating item",
-        description: error.message,
+        description: "An unexpected error occurred",
         variant: "destructive",
       });
       return false;
     }
-
-    toast({ title: "Item updated successfully" });
-    fetchItems();
-    return true;
   };
 
   const deleteItem = async (id: string) => {
-    const { error } = await supabase
-      .from("items")
-      .delete()
-      .eq("id", id);
+    try {
+      const { error } = await supabase
+        .from("items")
+        .delete()
+        .eq("id", id);
 
-    if (error) {
+      if (error) {
+        console.error("Error deleting item:", error);
+        toast({
+          title: "Error deleting item",
+          description: error.message,
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      toast({ title: "Item deleted successfully" });
+      await fetchItems();
+      return true;
+    } catch (err) {
+      console.error("Unexpected error deleting item:", err);
       toast({
         title: "Error deleting item",
-        description: error.message,
+        description: "An unexpected error occurred",
         variant: "destructive",
       });
       return false;
     }
-
-    toast({ title: "Item deleted successfully" });
-    fetchItems();
-    return true;
   };
 
   return { items, loading, addItem, updateItem, deleteItem, refetch: fetchItems };

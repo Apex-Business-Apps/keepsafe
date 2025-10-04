@@ -25,6 +25,7 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
   const [barcode, setBarcode] = useState("");
   const [notes, setNotes] = useState("");
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [receiptInputKey, setReceiptInputKey] = useState(0);
   const [scanning, setScanning] = useState(false);
 
   const handleBarcodeScanner = async () => {
@@ -166,6 +167,7 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
     setBarcode("");
     setNotes("");
     setReceiptFile(null);
+    setReceiptInputKey(prev => prev + 1); // Force file input reset
   };
 
   return (
@@ -261,6 +263,7 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
             <Label htmlFor="receipt">Receipt Photo</Label>
             <div className="flex gap-2 items-center">
               <Input
+                key={receiptInputKey}
                 id="receipt"
                 type="file"
                 accept="image/*"

@@ -11,6 +11,13 @@ export async function trackEvent(
   userId?: string
 ) {
   try {
+    // Validate props size to prevent abuse (max 1KB)
+    const propsJson = JSON.stringify(props || {});
+    if (propsJson.length > 1024) {
+      console.warn('Event props too large, truncating');
+      return;
+    }
+
     const response = await fetch(
       'https://aljdaazlgjcfwirqfjuc.supabase.co/functions/v1/track-event',
       {
@@ -27,7 +34,12 @@ export async function trackEvent(
     );
 
     if (!response.ok) {
-      console.warn('Failed to track event:', name);
+      const status = response.status;
+      if (status === 429) {
+        console.warn('Event tracking rate limit exceeded');
+      } else {
+        console.warn('Failed to track event:', name, status);
+      }
     }
   } catch (error) {
     // Silently fail - don't block UI for analytics
