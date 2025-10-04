@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -6,42 +6,29 @@ import { ItemForm } from "@/components/ItemForm";
 import { ItemList } from "@/components/ItemList";
 import { ItemListSkeleton } from "@/components/LoadingSkeleton";
 import { useItems } from "@/hooks/useItems";
+import { useAuthSession } from "@/hooks/useAuthSession";
 import { generatePDF } from "@/utils/pdfExport";
 import { trackEvent } from "@/lib/trackEvent";
 import { toast } from "@/hooks/use-toast";
 import { Download, LogOut, Shield } from "lucide-react";
-import type { Session } from "@supabase/supabase-js";
 
 const Index = () => {
-  const [session, setSession] = useState<Session | null>(null);
   const navigate = useNavigate();
+  const { session, loading: authLoading } = useAuthSession();
   const { items, loading, addItem, deleteItem } = useItems(session?.user?.id);
 
   useEffect(() => {
-    // Security: No dev mode bypass - authentication required
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (!session) {
-        navigate("/auth", { state: { from: "/dashboard" } });
-      }
-    });
+    if (!authLoading && !session) {
+      navigate("/auth", { state: { from: "/dashboard" } });
+    }
+  }, [session, authLoading, navigate]);
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session);
-      if (!session) {
-        navigate("/auth", { state: { from: "/dashboard" } });
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
-
-  const handleSignOut = async () => {
+  const handleSignOut = useCallback(async () => {
     await supabase.auth.signOut();
     toast({ title: "Signed out successfully" });
-  };
+  }, [toast]);
 
-  const handleExportPDF = async () => {
+  const handleExportPDF = useCallback(async () => {
     if (items.length === 0) {
       toast({
         title: "No items to export",
@@ -62,9 +49,9 @@ const Index = () => {
         variant: "destructive",
       });
     }
-  };
+  }, [items, session?.user?.id, toast]);
 
-  if (!session) {
+  if (authLoading || !session) {
     return null;
   }
 

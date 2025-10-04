@@ -35,10 +35,13 @@ export const useItems = (userId: string | undefined) => {
     
     setLoading(true);
     try {
+      // Optimized query: select only needed fields, use index
       const { data, error } = await supabase
         .from("items")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .select("id, user_id, name, brand, category, purchase_date, warranty_months, price, serial_number, barcode, receipt_photo_url, notes, recall_match, recall_url, created_at, updated_at")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(100);
 
       if (error) {
         console.error("Error fetching items:", error);
@@ -57,7 +60,7 @@ export const useItems = (userId: string | undefined) => {
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, toast]);
 
   useEffect(() => {
     fetchItems();

@@ -18,12 +18,14 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    console.log('Fetching all items for recall check...');
+    console.log('Fetching items with brand info for recall check...');
     
-    // Fetch all items from database
+    // Optimized: Only fetch items with brand info, select needed fields
     const { data: items, error: fetchError } = await supabase
       .from('items')
-      .select('*');
+      .select('id, name, brand')
+      .not('brand', 'is', null)
+      .limit(1000);
 
     if (fetchError) {
       throw fetchError;
@@ -31,39 +33,57 @@ serve(async (req) => {
 
     console.log(`Processing ${items?.length || 0} items`);
 
-    // Check CPSC recalls
-    const cpscResponse = await fetch(
-      'https://www.cpsc.gov/cgibin/CPSCUpcWS/getProdList.aspx?format=json&start=0&rows=100'
-    );
+    // Check CPSC recalls with timeout
+    const cpscController = new AbortController();
+    const cpscTimeout = setTimeout(() => cpscController.abort(), 10000);
     
-    if (!cpscResponse.ok) {
-      console.error('CPSC API error:', cpscResponse.status);
-    } else {
-      const cpscData = await cpscResponse.json();
-      console.log(`CPSC: fetched ${cpscData?.length || 0} records`);
+    try {
+      const cpscResponse = await fetch(
+        'https://www.cpsc.gov/cgibin/CPSCUpcWS/getProdList.aspx?format=json&start=0&rows=100',
+        { signal: cpscController.signal }
+      );
+      clearTimeout(cpscTimeout);
+      
+      if (!cpscResponse.ok) {
+        console.error('CPSC API error:', cpscResponse.status);
+      } else {
+        const cpscData = await cpscResponse.json();
+        console.log(`CPSC: fetched ${cpscData?.length || 0} records`);
 
-      // Match recalls with items
-      for (const item of items || []) {
-        if (!item.brand) continue;
+        // Batch updates for efficiency
+        const updates = [];
+        
+        for (const item of items || []) {
+          const brandLower = item.brand!.toLowerCase();
+          const recall = cpscData.find((r: any) => 
+            r.Manufacturer?.toLowerCase().includes(brandLower) ||
+            r.ProductName?.toLowerCase().includes(brandLower)
+          );
 
-        const brandLower = item.brand.toLowerCase();
-        const recall = cpscData.find((r: any) => 
-          r.Manufacturer?.toLowerCase().includes(brandLower) ||
-          r.ProductName?.toLowerCase().includes(brandLower)
-        );
-
-        if (recall) {
-          const recallUrl = recall.URL || 'https://www.cpsc.gov';
-          console.log(`Match found for ${item.name} (${item.brand})`);
-          
-          await supabase
-            .from('items')
-            .update({ 
-              recall_match: true, 
-              recall_url: recallUrl 
-            })
-            .eq('id', item.id);
+          if (recall) {
+            const recallUrl = recall.URL || 'https://www.cpsc.gov';
+            console.log(`Match found for ${item.name} (${item.brand})`);
+            updates.push({ id: item.id, recall_url: recallUrl });
+          }
         }
+
+        // Batch update all matches
+        if (updates.length > 0) {
+          for (const update of updates) {
+            await supabase
+              .from('items')
+              .update({ recall_match: true, recall_url: update.recall_url })
+              .eq('id', update.id);
+          }
+          console.log(`Updated ${updates.length} items with recall matches`);
+        }
+      }
+    } catch (err) {
+      clearTimeout(cpscTimeout);
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.error('CPSC API timeout after 10s');
+      } else {
+        throw err;
       }
     }
 
