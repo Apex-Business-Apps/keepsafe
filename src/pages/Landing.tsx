@@ -62,7 +62,11 @@ const Landing = () => {
           <div className="flex items-center gap-3">
             <div className="relative">
               <div className="absolute inset-0 bg-accent/30 blur-xl rounded-full" />
-              <img src={logoSvg} alt="KeepSafe" className="h-8 w-8 relative z-10 brightness-0 saturate-100" style={{ filter: 'invert(34%) sepia(92%) saturate(3527%) hue-rotate(217deg) brightness(95%) contrast(92%)' }} />
+              <div className="h-8 w-8 relative z-10 text-primary" style={{ 
+                WebkitMask: `url(${logoSvg}) center/contain no-repeat`,
+                mask: `url(${logoSvg}) center/contain no-repeat`,
+                backgroundColor: 'currentColor'
+              }} />
             </div>
             <span className="text-2xl font-black tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               KeepSafe
@@ -266,7 +270,11 @@ const Landing = () => {
         <div className="container mx-auto max-w-6xl">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-3">
-              <img src={logoSvg} alt="KeepSafe" className="h-6 w-6 brightness-0 saturate-100" style={{ filter: 'invert(34%) sepia(92%) saturate(3527%) hue-rotate(217deg) brightness(95%) contrast(92%)' }} />
+              <div className="h-6 w-6 text-primary" style={{ 
+                WebkitMask: `url(${logoSvg}) center/contain no-repeat`,
+                mask: `url(${logoSvg}) center/contain no-repeat`,
+                backgroundColor: 'currentColor'
+              }} />
               <span className="text-xl font-black bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 KeepSafe
               </span>
