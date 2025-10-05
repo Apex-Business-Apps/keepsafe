@@ -2,3 +2,9 @@ project_id = "aljdaazlgjcfwirqfjuc"
 
 [functions.ingest-hc-rss]
 verify_jwt = true
+
+[functions.check-recalls]
+verify_jwt = true
+
+[functions.health]
+verify_jwt = false

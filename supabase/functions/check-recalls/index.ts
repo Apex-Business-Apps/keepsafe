@@ -13,7 +13,58 @@ serve(async (req) => {
   }
 
   try {
+    // SECURITY: Verify JWT authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Missing authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    // Verify user is authenticated
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check if user has admin role
+    const { data: roles } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .single();
+
+    if (!roles) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden: Admin access required' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`Admin ${user.id} triggered recall check`);
+    
+    // Log security event
+    await supabase.from('security_audit_log').insert({
+      user_id: user.id,
+      action: 'check_recalls',
+      resource: 'cpsc_api',
+      success: true,
+    });
+
+    // Use service role for database operations
+    const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
@@ -21,7 +72,7 @@ serve(async (req) => {
     console.log('Fetching items with brand info for recall check...');
     
     // Optimized: Only fetch items with brand info, select needed fields
-    const { data: items, error: fetchError } = await supabase
+    const { data: items, error: fetchError } = await supabaseAdmin
       .from('items')
       .select('id, name, brand')
       .not('brand', 'is', null)
@@ -70,7 +121,7 @@ serve(async (req) => {
         // Batch update all matches
         if (updates.length > 0) {
           for (const update of updates) {
-            await supabase
+            await supabaseAdmin
               .from('items')
               .update({ recall_match: true, recall_url: update.recall_url })
               .eq('id', update.id);
