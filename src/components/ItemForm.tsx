@@ -86,7 +86,7 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    let receiptUrl = "";
+    let receiptFilePath = "";
     if (receiptFile) {
       // Validate file size (10MB max)
       const maxSize = 10 * 1024 * 1024;
@@ -110,6 +110,7 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
         return;
       }
 
+      // SECURITY FIX: Store file path instead of signed URL to prevent expiry
       const fileExt = receiptFile.name.split(".").pop();
       const filePath = `${userId}/${Date.now()}.${fileExt}`;
       
@@ -126,21 +127,8 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
         return;
       }
 
-      // Use signed URL for private bucket (expires in 24 hours)
-      const { data: signedUrlData, error: urlError } = await supabase.storage
-        .from("receipts")
-        .createSignedUrl(filePath, 86400);
-      
-      if (urlError) {
-        toast({
-          title: "Error generating receipt URL",
-          description: urlError.message,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      receiptUrl = signedUrlData.signedUrl;
+      // Store only the file path, not the signed URL
+      receiptFilePath = filePath;
     }
 
     await onSubmit({
@@ -152,7 +140,7 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
       price: price ? parseFloat(price) : undefined,
       serial_number: serialNumber || undefined,
       barcode: barcode || undefined,
-      receipt_photo_url: receiptUrl || undefined,
+      receipt_file_path: receiptFilePath || undefined,
       notes: notes || undefined,
     });
 

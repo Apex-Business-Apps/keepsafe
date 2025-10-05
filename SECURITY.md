@@ -46,18 +46,23 @@ We respond within 48 hours.
 - ✅ Permissions-Policy: camera=(self) for barcode scanning
 - ✅ Content-Security-Policy with restricted sources
 
-## Security Audit Summary (Last Updated: 2025-10-04)
+## Security Audit Summary (Last Updated: 2025-10-05)
 
 ### Fixed Critical Issues
 1. ✅ Items.user_id now NOT NULL with foreign key constraint
 2. ✅ Removed dev mode authentication bypass
-3. ✅ Enabled JWT verification on check-recalls function
+3. ✅ Enabled JWT verification on all edge functions (check-recalls, ingest-hc-rss)
 4. ✅ Removed email logging from signup events
+5. ✅ Role-Based Access Control (RBAC) system implemented with security definer functions
+6. ✅ Receipt URLs fixed with dynamic generation (no expiry issues)
 
 ### Fixed High-Priority Issues
-5. ✅ CORS restricted to specific domains (no wildcard)
-6. ✅ Receipt storage uses signed URLs (24hr expiry)
-7. ✅ Analytics views protected with security definer functions
+7. ✅ CORS restricted to specific domains (no wildcard)
+8. ✅ Receipt storage uses dynamic signed URLs (prevents expiry)
+9. ✅ Analytics views protected with admin-only access
+10. ✅ Storage bucket RLS policies properly configured
+11. ✅ Admin-only access for sensitive operations (recall ingestion, analytics)
+12. ✅ Security audit logging implemented for sensitive operations
 
 ### Fixed Medium-Priority Issues
 8. ✅ X-Frame-Options updated to SAMEORIGIN (Lovable editor compatible)

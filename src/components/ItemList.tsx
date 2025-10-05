@@ -3,35 +3,40 @@ import { Item } from "@/hooks/useItems";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, AlertTriangle, ExternalLink } from "lucide-react";
+import { Trash2, AlertTriangle, ExternalLink, Image as ImageIcon } from "lucide-react";
 import { format } from "date-fns";
+import { useReceiptUrl } from "@/hooks/useReceiptUrl";
 
 interface ItemListProps {
   items: Item[];
   onDelete: (id: string) => void;
 }
 
-const ItemCard = memo(({ item, onDelete }: { item: Item; onDelete: (id: string) => void }) => (
-  <Card>
-    <CardHeader>
-      <div className="flex justify-between items-start">
-        <CardTitle className="text-lg">{item.name}</CardTitle>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => onDelete(item.id)}
-        >
-          <Trash2 className="h-4 w-4 text-destructive" />
-        </Button>
-      </div>
-      {item.recall_match && (
-        <Badge variant="destructive" className="w-fit">
-          <AlertTriangle className="h-3 w-3 mr-1" />
-          Recall Alert
-        </Badge>
-      )}
-    </CardHeader>
-    <CardContent className="space-y-2">
+const ItemCard = memo(({ item, onDelete }: { item: Item; onDelete: (id: string) => void }) => {
+  // SECURITY FIX: Generate signed URL dynamically to prevent expiry
+  const { signedUrl: receiptUrl, loading: receiptLoading } = useReceiptUrl(item.receipt_file_path);
+  
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex justify-between items-start">
+          <CardTitle className="text-lg">{item.name}</CardTitle>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onDelete(item.id)}
+          >
+            <Trash2 className="h-4 w-4 text-destructive" />
+          </Button>
+        </div>
+        {item.recall_match && (
+          <Badge variant="destructive" className="w-fit">
+            <AlertTriangle className="h-3 w-3 mr-1" />
+            Recall Alert
+          </Badge>
+        )}
+      </CardHeader>
+      <CardContent className="space-y-2">
       {item.brand && (
         <p className="text-sm">
           <span className="font-medium">Brand:</span> {item.brand}
@@ -68,6 +73,25 @@ const ItemCard = memo(({ item, onDelete }: { item: Item; onDelete: (id: string) 
           Barcode: {item.barcode}
         </p>
       )}
+      {item.receipt_file_path && (
+        <div className="text-sm">
+          <span className="font-medium">Receipt:</span>{" "}
+          {receiptLoading ? (
+            <span className="text-muted-foreground">Loading...</span>
+          ) : receiptUrl ? (
+            <a
+              href={receiptUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline flex items-center gap-1 inline-flex"
+            >
+              View Receipt <ImageIcon className="h-3 w-3" />
+            </a>
+          ) : (
+            <span className="text-destructive">Failed to load</span>
+          )}
+        </div>
+      )}
       {item.recall_url && (
         <a
           href={item.recall_url}
@@ -80,7 +104,8 @@ const ItemCard = memo(({ item, onDelete }: { item: Item; onDelete: (id: string) 
       )}
     </CardContent>
   </Card>
-));
+  );
+});
 
 export const ItemList = memo(({ items, onDelete }: ItemListProps) => {
   if (items.length === 0) {

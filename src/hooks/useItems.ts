@@ -14,7 +14,8 @@ export interface Item {
   price?: number;
   serial_number?: string;
   barcode?: string;
-  receipt_photo_url?: string;
+  receipt_photo_url?: string; // Deprecated: kept for backwards compatibility
+  receipt_file_path?: string; // New: stores file path for dynamic signed URLs
   notes?: string;
   recall_match?: boolean;
   recall_url?: string;
@@ -38,7 +39,7 @@ export const useItems = (userId: string | undefined) => {
       // Optimized query: select only needed fields, use index
       const { data, error } = await supabase
         .from("items")
-        .select("id, user_id, name, brand, category, purchase_date, warranty_months, price, serial_number, barcode, receipt_photo_url, notes, recall_match, recall_url, created_at, updated_at")
+        .select("id, user_id, name, brand, category, purchase_date, warranty_months, price, serial_number, barcode, receipt_photo_url, receipt_file_path, notes, recall_match, recall_url, created_at, updated_at")
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(100);
