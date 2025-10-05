@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Shield, Camera, FileText, AlertTriangle, Lock, Smartphone, Zap, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import logoSvg from "@/assets/keepsafe-logo.svg";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -61,7 +62,7 @@ const Landing = () => {
           <div className="flex items-center gap-3">
             <div className="relative">
               <div className="absolute inset-0 bg-accent/30 blur-xl rounded-full" />
-              <Shield className="h-8 w-8 text-primary relative z-10" strokeWidth={2.5} />
+              <img src={logoSvg} alt="KeepSafe" className="h-8 w-8 relative z-10" />
             </div>
             <span className="text-2xl font-black tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               KeepSafe
@@ -265,7 +266,7 @@ const Landing = () => {
         <div className="container mx-auto max-w-6xl">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-3">
-              <Shield className="h-6 w-6 text-primary" strokeWidth={2.5} />
+              <img src={logoSvg} alt="KeepSafe" className="h-6 w-6" />
               <span className="text-xl font-black bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 KeepSafe
               </span>
