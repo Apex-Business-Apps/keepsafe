@@ -8,6 +8,8 @@ import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import Privacy from "./pages/Privacy";
 import RecallDetail from "./pages/RecallDetail";
+import RecallBrandIndex from "./pages/RecallBrandIndex";
+import RecallDirectory from "./pages/RecallDirectory";
 import SitemapRoute from "./pages/SitemapRoute";
 import NotFound from "./pages/NotFound";
 
@@ -24,7 +26,9 @@ const App = () => (
           <Route path="/dashboard" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/privacy" element={<Privacy />} />
-          <Route path="/recalls/:slug" element={<RecallDetail />} />
+          <Route path="/recalls" element={<RecallDirectory />} />
+          <Route path="/recalls/:brand" element={<RecallBrandIndex />} />
+          <Route path="/recalls/:brand/:model" element={<RecallDetail />} />
           <Route path="/sitemap.xml" element={<SitemapRoute />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

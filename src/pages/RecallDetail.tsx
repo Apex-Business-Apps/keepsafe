@@ -16,28 +16,21 @@ interface Recall {
 }
 
 const RecallDetail = () => {
-  const { slug } = useParams();
+  const { brand, model } = useParams();
   const navigate = useNavigate();
   const [recall, setRecall] = useState<Recall | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchRecall = async () => {
-      if (!slug) return;
-
-      // Parse brand and model from slug
-      const parts = slug.split('-');
-      if (parts.length < 2) {
-        setLoading(false);
-        return;
-      }
+      if (!brand || !model) return;
 
       try {
         const { data, error } = await supabase
           .from('recalls')
           .select('*')
-          .ilike('brand', `%${parts[0]}%`)
-          .ilike('model', `%${parts.slice(1).join(' ')}%`)
+          .eq('brand', brand)
+          .eq('model', model)
           .limit(1)
           .maybeSingle();
 
@@ -71,7 +64,7 @@ const RecallDetail = () => {
     };
 
     fetchRecall();
-  }, [slug]);
+  }, [brand, model]);
 
   if (loading) {
     return (
@@ -186,7 +179,7 @@ const RecallDetail = () => {
               </ol>
             </div>
 
-            <div className="border-t border-border pt-6">
+            <div className="border-t border-border pt-6 space-y-4">
               <Button
                 onClick={() => window.open(recall.url, '_blank')}
                 size="lg"
@@ -194,6 +187,14 @@ const RecallDetail = () => {
               >
                 <ExternalLink className="mr-2 h-5 w-5" />
                 View Official Recall Notice
+              </Button>
+              <Button
+                onClick={() => navigate("/dashboard")}
+                variant="outline"
+                size="lg"
+                className="w-full font-bold"
+              >
+                Export Your Insurance Binder
               </Button>
               <p className="text-xs text-muted-foreground mt-3 text-center">
                 Always refer to the official notice for the most accurate and up-to-date information.
