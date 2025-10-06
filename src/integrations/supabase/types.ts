@@ -190,7 +190,30 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_activation: {
+        Row: {
+          first_item_at: string | null
+          items_count: number | null
+          last_item_at: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      v_paid_clicks: {
+        Row: {
+          paid_clicks: number | null
+          week: string | null
+        }
+        Relationships: []
+      }
+      v_pql: {
+        Row: {
+          items_count: number | null
+          last_recall_alert_seen: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_activation_metrics: {
