@@ -14,15 +14,22 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker
       .register('/sw.js')
       .then(registration => {
-        console.log('ServiceWorker registered:', registration.scope);
+        console.log('%c[PWA] ✓ Service Worker registered', 'color: #10b981; font-weight: bold;');
+        console.log('[PWA] Scope:', registration.scope);
         
         // Check for updates periodically
         setInterval(() => {
           registration.update();
         }, 60 * 60 * 1000); // Check every hour
+        
+        // Install prompt handling
+        window.addEventListener('beforeinstallprompt', (e) => {
+          e.preventDefault();
+          console.log('%c[PWA] ✓ Install prompt available', 'color: #10b981; font-weight: bold;');
+        });
       })
       .catch(error => {
-        console.error('ServiceWorker registration failed:', error);
+        console.error('[PWA] ✗ Service Worker registration failed:', error);
       });
   });
 }

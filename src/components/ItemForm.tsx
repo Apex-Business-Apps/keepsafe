@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera, QrCode } from "lucide-react";
+import { Camera, QrCode, AlertCircle } from "lucide-react";
 import { Item } from "@/hooks/useItems";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,11 +16,13 @@ interface ItemFormProps {
 
 export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
   const [name, setName] = useState("");
+  const [nameError, setNameError] = useState("");
   const [brand, setBrand] = useState("");
   const [category, setCategory] = useState("");
   const [purchaseDate, setPurchaseDate] = useState("");
   const [warrantyMonths, setWarrantyMonths] = useState("");
   const [price, setPrice] = useState("");
+  const [priceError, setPriceError] = useState("");
   const [serialNumber, setSerialNumber] = useState("");
   const [barcode, setBarcode] = useState("");
   const [notes, setNotes] = useState("");
@@ -83,8 +85,73 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
     }
   };
 
+  // Inline validation handlers
+  const validateName = (value: string) => {
+    const trimmed = value.trim();
+    if (trimmed.length === 0) {
+      setNameError("Item name is required");
+      return false;
+    }
+    if (trimmed.length > 255) {
+      setNameError("Name must be less than 255 characters");
+      return false;
+    }
+    setNameError("");
+    return true;
+  };
+
+  const validatePrice = (value: string) => {
+    if (value && isNaN(parseFloat(value))) {
+      setPriceError("Please enter a valid number");
+      return false;
+    }
+    if (value && parseFloat(value) < 0) {
+      setPriceError("Price cannot be negative");
+      return false;
+    }
+    setPriceError("");
+    return true;
+  };
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setName(value);
+    // Clear error on typing if valid
+    if (nameError && value.trim().length > 0) {
+      setNameError("");
+    }
+  };
+
+  const handleNameBlur = () => {
+    validateName(name);
+  };
+
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setPrice(value);
+    if (priceError && value && !isNaN(parseFloat(value))) {
+      setPriceError("");
+    }
+  };
+
+  const handlePriceBlur = () => {
+    validatePrice(price);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate before submit
+    const isNameValid = validateName(name);
+    const isPriceValid = validatePrice(price);
+
+    if (!isNameValid || !isPriceValid) {
+      toast({
+        title: "Please fix errors before submitting",
+        variant: "destructive",
+      });
+      return;
+    }
 
     let receiptFilePath = "";
     if (receiptFile) {
@@ -146,13 +213,29 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
       notes: notes.trim() || undefined,
     });
 
+    // Optimistic update: show success immediately
+    toast({ 
+      title: "Item added successfully!",
+      action: (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => toast({ title: "Undo feature coming soon" })}
+        >
+          Undo
+        </Button>
+      ),
+    });
+
     // Reset form
     setName("");
+    setNameError("");
     setBrand("");
     setCategory("");
     setPurchaseDate("");
     setWarrantyMonths("");
     setPrice("");
+    setPriceError("");
     setSerialNumber("");
     setBarcode("");
     setNotes("");
@@ -166,76 +249,105 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
         <CardTitle>Add New Item</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Single-column layout */}
+          <div className="space-y-2">
+            <Label htmlFor="name" className="text-base font-semibold">Item Name *</Label>
+            <Input
+              id="name"
+              value={name}
+              onChange={handleNameChange}
+              onBlur={handleNameBlur}
+              required
+              aria-invalid={!!nameError}
+              aria-describedby={nameError ? "name-error" : undefined}
+              className={`h-12 text-base transition-all duration-150 ${nameError ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+            />
+            {nameError && (
+              <p id="name-error" className="text-sm text-destructive flex items-center gap-1 animate-fade-in">
+                <AlertCircle className="h-4 w-4" />
+                {nameError}
+              </p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="brand" className="text-base font-semibold">Brand</Label>
+            <Input
+              id="brand"
+              value={brand}
+              onChange={(e) => setBrand(e.target.value)}
+              className="h-12 text-base transition-all duration-150"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="category" className="text-base font-semibold">Category</Label>
+            <Input
+              id="category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="h-12 text-base transition-all duration-150"
+            />
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Item Name *</Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="brand">Brand</Label>
-              <Input
-                id="brand"
-                value={brand}
-                onChange={(e) => setBrand(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
-              <Input
-                id="category"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="purchaseDate">Purchase Date</Label>
+              <Label htmlFor="purchaseDate" className="text-base font-semibold">Purchase Date</Label>
               <Input
                 id="purchaseDate"
                 type="date"
                 value={purchaseDate}
                 onChange={(e) => setPurchaseDate(e.target.value)}
+                className="h-12 text-base transition-all duration-150"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="warrantyMonths">Warranty (months)</Label>
+              <Label htmlFor="warrantyMonths" className="text-base font-semibold">Warranty (months)</Label>
               <Input
                 id="warrantyMonths"
                 type="number"
                 value={warrantyMonths}
                 onChange={(e) => setWarrantyMonths(e.target.value)}
+                className="h-12 text-base transition-all duration-150"
               />
             </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="price" className="text-base font-semibold">Price ($)</Label>
+            <Input
+              id="price"
+              type="number"
+              step="0.01"
+              value={price}
+              onChange={handlePriceChange}
+              onBlur={handlePriceBlur}
+              aria-invalid={!!priceError}
+              aria-describedby={priceError ? "price-error" : undefined}
+              className={`h-12 text-base transition-all duration-150 ${priceError ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+            />
+            {priceError && (
+              <p id="price-error" className="text-sm text-destructive flex items-center gap-1 animate-fade-in">
+                <AlertCircle className="h-4 w-4" />
+                {priceError}
+              </p>
+            )}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="price">Price</Label>
-              <Input
-                id="price"
-                type="number"
-                step="0.01"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="serialNumber">Serial Number</Label>
+              <Label htmlFor="serialNumber" className="text-base font-semibold">Serial Number</Label>
               <Input
                 id="serialNumber"
                 value={serialNumber}
                 onChange={(e) => setSerialNumber(e.target.value)}
+                className="h-12 text-base transition-all duration-150"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="barcode">Barcode</Label>
+              <Label htmlFor="barcode" className="text-base font-semibold">Barcode</Label>
               <div className="flex gap-2">
                 <Input
                   id="barcode"
                   value={barcode}
                   onChange={(e) => setBarcode(e.target.value)}
+                  className="h-12 text-base transition-all duration-150"
                 />
                 <Button
                   type="button"
@@ -243,14 +355,16 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
                   size="icon"
                   onClick={handleBarcodeScanner}
                   disabled={scanning}
+                  className="h-12 w-12 transition-all duration-150 hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
+                  aria-label="Scan barcode"
                 >
-                  <QrCode className="h-4 w-4" />
+                  <QrCode className="h-5 w-5" />
                 </Button>
               </div>
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="receipt">Receipt Photo</Label>
+            <Label htmlFor="receipt" className="text-base font-semibold">Receipt Photo</Label>
             <div className="flex gap-2 items-center">
               <Input
                 key={receiptInputKey}
@@ -258,6 +372,7 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
                 type="file"
                 accept="image/*"
                 onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
+                className="h-12 text-base transition-all duration-150"
               />
               <Button
                 type="button"
@@ -274,20 +389,28 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
                   };
                   input.click();
                 }}
+                className="h-12 w-12 transition-all duration-150 hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
+                aria-label="Take photo of receipt"
               >
-                <Camera className="h-4 w-4" />
+                <Camera className="h-5 w-5" />
               </Button>
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
+            <Label htmlFor="notes" className="text-base font-semibold">Notes</Label>
             <Textarea
               id="notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
+              className="min-h-24 text-base transition-all duration-150"
             />
           </div>
-          <Button type="submit" className="w-full">Add Item</Button>
+          <Button 
+            type="submit" 
+            className="w-full h-12 text-base font-semibold transition-all duration-150 hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
+          >
+            Add Item
+          </Button>
         </form>
       </CardContent>
     </Card>

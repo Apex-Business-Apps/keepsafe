@@ -23,10 +23,16 @@ function getRating(name: string, value: number): 'good' | 'needs-improvement' | 
 function logMetric(metric: WebVitalsMetric) {
   const { name, value, rating } = metric;
   const color = rating === 'good' ? '#10b981' : rating === 'needs-improvement' ? '#f59e0b' : '#ef4444';
+  const emoji = rating === 'good' ? '✓' : rating === 'needs-improvement' ? '⚠' : '✗';
+  const verdict = rating === 'good' ? 'OK' : 'Needs work';
+  
+  const displayValue = name === 'CLS' 
+    ? value.toFixed(3) 
+    : `${value.toFixed(1)}ms`;
   
   console.log(
-    `%c[Web Vitals] ${name}: ${value.toFixed(2)}${name === 'CLS' ? '' : 'ms'} (${rating})`,
-    `color: ${color}; font-weight: bold;`
+    `%c[Web Vitals] ${emoji} ${name}: ${displayValue} → ${verdict}`,
+    `color: ${color}; font-weight: bold; font-size: 13px;`
   );
 
   // Send to analytics (if in production)
@@ -46,13 +52,15 @@ function logMetric(metric: WebVitalsMetric) {
 }
 
 export function initWebVitals() {
-  // Only run in browser and dev mode (for emphasis during development)
-  if (typeof window === 'undefined' || !import.meta.env.DEV) {
+  // Only run in browser
+  if (typeof window === 'undefined') {
     return;
   }
 
-  console.log('%c[Web Vitals] Monitoring started', 'color: #8b5cf6; font-weight: bold;');
-  console.log('%cTargets: LCP < 2.5s, INP < 200ms, CLS < 0.1', 'color: #8b5cf6;');
+  console.log('%c[Web Vitals] Performance monitoring active', 'color: #10b981; font-weight: bold; font-size: 14px;');
+  console.log('%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'color: #6366f1;');
+  console.log('%cTargets: LCP ≤ 2.5s | INP ≤ 200ms | CLS ≤ 0.1', 'color: #8b5cf6; font-weight: bold;');
+  console.log('%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'color: #6366f1;');
 
   // Largest Contentful Paint (LCP)
   const lcpObserver = new PerformanceObserver((list) => {

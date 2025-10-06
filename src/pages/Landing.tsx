@@ -83,20 +83,24 @@ const Landing = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="relative py-24 px-4 gradient-hero overflow-hidden">
+      <section className="relative py-20 px-4 gradient-hero overflow-hidden">
         {/* Animated orbs */}
         <div className="absolute top-20 left-10 w-96 h-96 bg-primary/20 rounded-full blur-[100px] animate-pulse" />
         <div className="absolute bottom-20 right-10 w-[500px] h-[500px] bg-accent/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
         
-        <div className="container mx-auto max-w-6xl relative z-10">
-          <div className="inline-flex items-center gap-2 mb-6 px-5 py-2 glass-effect rounded-full text-sm font-bold border border-accent/30 neon-effect">
-            <Zap className="h-4 w-4 text-accent" />
-            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Next-Gen Home Protection
-            </span>
+        <div className="container mx-auto max-w-5xl relative z-10">
+          {/* Badge centered in inner column */}
+          <div className="flex justify-center mb-8">
+            <div className="inline-flex items-center gap-2 px-5 py-2 glass-effect rounded-full text-sm font-bold border border-accent/30 neon-effect">
+              <Zap className="h-4 w-4 text-accent" />
+              <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                Next-Gen Home Protection
+              </span>
+            </div>
           </div>
           
-          <h1 className="text-7xl md:text-8xl font-black text-foreground mb-6 leading-[0.9] text-balance">
+          {/* Hero content raised higher */}
+          <h1 className="text-6xl md:text-7xl font-black text-foreground mb-5 leading-[0.95] text-balance text-center">
             Secure Your
             <br />
             <span className="bg-gradient-to-r from-primary via-primary-glow to-accent bg-clip-text text-transparent inline-block">
@@ -104,35 +108,29 @@ const Landing = () => {
             </span>
           </h1>
           
-          <p className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-2xl leading-relaxed font-medium">
+          <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed font-medium text-center">
             Advanced inventory system with AI-powered recall monitoring. 
             Your belongings, <span className="text-accent font-bold">instantly protected</span>.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 mb-20">
+          {/* Single primary CTA below subhead */}
+          <div className="flex justify-center mb-16">
             <Button 
               size="lg" 
               onClick={() => navigate("/auth")} 
-              className="text-lg h-14 px-10 gradient-accent hover:opacity-90 shadow-premium neon-effect transition-all duration-300 hover:scale-105 font-bold"
+              className="text-lg h-14 px-10 gradient-accent hover:opacity-90 shadow-premium neon-effect transition-all duration-150 hover:scale-105 font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
+              aria-label="Start your free trial"
             >
               Start Free Trial
               <Zap className="ml-2 h-5 w-5" />
             </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
-              className="text-lg h-14 px-10 border-2 border-primary/40 glass-effect hover:border-primary hover:bg-primary/10 transition-all duration-300 font-semibold group"
-            >
-              <Eye className="mr-2 h-5 w-5 group-hover:text-primary transition-colors" />
-              See It Live
-            </Button>
           </div>
 
           {/* Stats with unique styling */}
-          <div className="grid grid-cols-3 gap-8 max-w-3xl pt-8 border-t border-primary/20">
-            {stats.map((stat, i) => (
+          <div className="grid grid-cols-3 gap-8 max-w-3xl mx-auto pt-8 border-t border-primary/20">
+            {stats.map((stat) => (
               <div key={stat.label} className="group text-center">
-                <div className="text-5xl md:text-6xl font-black mb-2 bg-gradient-to-br from-primary to-accent bg-clip-text text-transparent group-hover:scale-110 transition-transform">
+                <div className="text-4xl md:text-5xl font-black mb-2 bg-gradient-to-br from-primary to-accent bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-150">
                   {stat.value}
                 </div>
                 <div className="text-xs uppercase tracking-widest text-muted-foreground font-bold">{stat.label}</div>

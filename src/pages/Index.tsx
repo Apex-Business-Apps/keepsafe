@@ -97,24 +97,54 @@ const Index = () => {
         </div>
       </header>
 
-      {/* CTA Section */}
-      <div className="relative z-10 container mx-auto px-6 pt-6">
-        <div className="text-center space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/20 border border-accent/30">
-            <span className="text-lg">⚡</span>
-            <span className="text-sm font-semibold bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent">
-              Next-Gen Home Protection
-            </span>
+      {/* Empty State or CTA Section */}
+      {!loading && items.length === 0 && (
+        <div className="relative z-10 container mx-auto px-6 pt-12 pb-6">
+          <div className="glass-effect border border-primary/20 rounded-3xl p-12 text-center space-y-6 shadow-premium">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 mb-4">
+              <Shield className="h-10 w-10 text-primary" strokeWidth={2.5} />
+            </div>
+            <h2 className="text-4xl md:text-5xl font-black">
+              <span className="text-foreground">Let's Add Your</span>
+              <br />
+              <span className="bg-gradient-to-r from-primary via-primary-glow to-accent bg-clip-text text-transparent">
+                First Item
+              </span>
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
+              Start protecting your belongings in under a minute. Add an item, upload a receipt, and we'll monitor recalls automatically.
+            </p>
+            <ul className="text-left max-w-md mx-auto space-y-3 text-muted-foreground">
+              <li className="flex items-start gap-3">
+                <div className="mt-1 w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                  <span className="text-primary text-xs font-bold">✓</span>
+                </div>
+                <span>Automatically tracked warranties</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <div className="mt-1 w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                  <span className="text-primary text-xs font-bold">✓</span>
+                </div>
+                <span>Instant recall alerts for your safety</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <div className="mt-1 w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                  <span className="text-primary text-xs font-bold">✓</span>
+                </div>
+                <span>Export insurance binder in one click</span>
+              </li>
+            </ul>
+            <Button
+              size="lg"
+              onClick={() => document.getElementById('name')?.focus()}
+              className="text-lg h-14 px-10 gradient-accent hover:opacity-90 shadow-premium transition-all duration-150 hover:scale-105 font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
+            >
+              <Shield className="mr-2 h-5 w-5" />
+              Add Your First Item
+            </Button>
           </div>
-          <h2 className="text-5xl font-black">
-            <span className="text-foreground">Secure Your</span>
-            <br />
-            <span className="bg-gradient-to-r from-accent via-primary to-accent bg-clip-text text-transparent">
-              Entire Life
-            </span>
-          </h2>
         </div>
-      </div>
+      )}
 
       <main className="relative z-10 container mx-auto px-6 py-6 space-y-10">
         <div className="glass-effect border border-primary/20 rounded-2xl p-8 shadow-premium">
