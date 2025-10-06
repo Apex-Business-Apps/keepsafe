@@ -1,174 +1,151 @@
-// KeepSafe Service Worker
-const CACHE_NAME = 'keepsafe-v1';
+// KeepSafe Service Worker - Production Grade with Offline Support
+const CACHE_NAME = 'keepsafe-shell-v1';
 const API_CACHE_NAME = 'keepsafe-api-v1';
+const MAX_CACHED_ITEMS = 100;
 
-// Cache static assets
-const STATIC_ASSETS = [
+// App shell assets to cache on install
+const APP_SHELL = [
   '/',
+  '/index.html',
   '/manifest.webmanifest',
-  '/icon-192.png',
-  '/icon-512.png'
 ];
 
-// Install event - cache static assets
+// Install event - cache app shell
 self.addEventListener('install', (event) => {
-  console.log('Service Worker: Installing');
-  
+  console.log('[ServiceWorker] Installing...');
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Service Worker: Caching static assets');
-        return cache.addAll(STATIC_ASSETS);
-      })
-      .then(() => {
-        console.log('Service Worker: Installation complete');
-        return self.skipWaiting();
-      })
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log('[ServiceWorker] Caching app shell');
+      return cache.addAll(APP_SHELL);
+    }).then(() => {
+      console.log('[ServiceWorker] Skip waiting');
+      return self.skipWaiting();
+    })
   );
 });
 
-// Activate event - clean up old caches
+// Activate event - clean old caches
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker: Activating');
-  
+  console.log('[ServiceWorker] Activating...');
   event.waitUntil(
-    caches.keys()
-      .then((cacheNames) => {
-        return Promise.all(
-          cacheNames.map((cacheName) => {
-            if (cacheName !== CACHE_NAME && cacheName !== API_CACHE_NAME) {
-              console.log('Service Worker: Deleting old cache:', cacheName);
-              return caches.delete(cacheName);
-            }
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames
+          .filter((cacheName) => {
+            return cacheName !== CACHE_NAME && cacheName !== API_CACHE_NAME;
           })
-        );
-      })
-      .then(() => {
-        console.log('Service Worker: Activation complete');
-        return self.clients.claim();
-      })
+          .map((cacheName) => {
+            console.log('[ServiceWorker] Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          })
+      );
+    }).then(() => {
+      console.log('[ServiceWorker] Claiming clients');
+      return self.clients.claim();
+    })
   );
 });
 
-// Fetch event - network first for API, cache first for static assets
+// LRU cache management for items
+async function maintainItemsCache() {
+  const cache = await caches.open(API_CACHE_NAME);
+  const keys = await cache.keys();
+  
+  // Find all /items responses
+  const itemKeys = keys.filter(key => new URL(key.url).pathname === '/items');
+  
+  if (itemKeys.length > 1) {
+    // Keep only the most recent /items cache entry
+    const sortedKeys = itemKeys.sort((a, b) => {
+      return b.url.localeCompare(a.url); // Simple timestamp-based sort
+    });
+    
+    // Delete older entries
+    for (let i = 1; i < sortedKeys.length; i++) {
+      await cache.delete(sortedKeys[i]);
+    }
+  }
+}
+
+// Fetch event - Network first with offline fallback
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
-  
-  // Handle API requests (network first, cache fallback)
-  // Check if request is to API server (different origin with port 8080)
-  const isApiRequest = url.pathname.startsWith('/api/') || 
-                       (url.hostname === 'localhost' && url.port === '8080') ||
-                       url.pathname === '/health' ||
-                       url.pathname === '/items' ||
-                       url.pathname.startsWith('/items/');
-  
-  if (isApiRequest) {
+
+  // Skip non-GET requests
+  if (request.method !== 'GET') {
+    return;
+  }
+
+  // Handle API requests to /items
+  if (url.pathname === '/items' && url.port === '8080') {
     event.respondWith(
       fetch(request)
-        .then((response) => {
-          // Cache successful GET requests for items
-          if (request.method === 'GET' && url.pathname === '/items') {
+        .then(async (response) => {
+          if (response.ok) {
+            // Clone and cache the response
             const responseClone = response.clone();
-            caches.open(API_CACHE_NAME)
-              .then((cache) => {
-                cache.put(request, responseClone);
-              });
+            const cache = await caches.open(API_CACHE_NAME);
+            await cache.put(request, responseClone);
+            
+            // Maintain LRU: keep only last 100 items
+            await maintainItemsCache();
+            
+            console.log('[ServiceWorker] Cached /items response');
           }
           return response;
         })
-        .catch(() => {
-          // Return cached response if network fails
-          if (request.method === 'GET') {
-            return caches.match(request);
+        .catch(async () => {
+          // Network failed: serve from cache (offline support)
+          const cachedResponse = await caches.match(request);
+          if (cachedResponse) {
+            console.log('[ServiceWorker] Serving /items from cache (offline)');
+            return cachedResponse;
           }
-          // For non-GET requests, return a custom offline response
+          
+          // No cache available
           return new Response(
-            JSON.stringify({ error: 'Offline - please try again when connected' }),
-            {
-              status: 503,
-              statusText: 'Service Unavailable',
-              headers: { 'Content-Type': 'application/json' }
-            }
+            JSON.stringify({ error: 'Offline: no cached data available' }),
+            { status: 503, headers: { 'Content-Type': 'application/json' } }
           );
         })
     );
     return;
   }
-  
-  // Handle static assets (cache first, network fallback)
+
+  // Handle app shell and static assets - cache first
   event.respondWith(
-    caches.match(request)
-      .then((cachedResponse) => {
-        if (cachedResponse) {
-          return cachedResponse;
-        }
-        
-        return fetch(request)
-          .then((response) => {
-            // Cache successful responses for static assets
-            if (response.status === 200) {
-              const responseClone = response.clone();
-              caches.open(CACHE_NAME)
-                .then((cache) => {
-                  cache.put(request, responseClone);
-                });
-            }
-            return response;
-          });
-      })
-  );
-});
-
-// Handle background sync for offline actions (future enhancement)
-self.addEventListener('sync', (event) => {
-  console.log('Service Worker: Background sync triggered:', event.tag);
-  
-  if (event.tag === 'sync-items') {
-    event.waitUntil(syncItems());
-  }
-});
-
-async function syncItems() {
-  // Future: Handle offline item creation/updates
-  console.log('Service Worker: Syncing items...');
-}
-
-// Handle push notifications (future enhancement)
-self.addEventListener('push', (event) => {
-  console.log('Service Worker: Push event received');
-  
-  const options = {
-    body: 'You have new recall alerts!',
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
-    tag: 'recall-alert',
-    actions: [
-      {
-        action: 'view',
-        title: 'View Items'
-      },
-      {
-        action: 'dismiss',
-        title: 'Dismiss'
+    caches.match(request).then((cachedResponse) => {
+      if (cachedResponse) {
+        return cachedResponse;
       }
-    ]
-  };
-  
-  event.waitUntil(
-    self.registration.showNotification('KeepSafe Alert', options)
+      
+      // Not in cache: fetch from network
+      return fetch(request).then((response) => {
+        // Cache successful responses
+        if (response.ok && request.url.startsWith(self.location.origin)) {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(request, responseClone);
+          });
+        }
+        return response;
+      }).catch(() => {
+        // Network failed and no cache
+        if (request.mode === 'navigate') {
+          return caches.match('/index.html');
+        }
+        return new Response('Offline', { status: 503 });
+      });
+    })
   );
 });
 
-// Handle notification clicks
-self.addEventListener('notificationclick', (event) => {
-  console.log('Service Worker: Notification clicked');
-  
-  event.notification.close();
-  
-  if (event.action === 'view') {
-    event.waitUntil(
-      clients.openWindow('/')
-    );
+// Message handler
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
   }
 });
+
+console.log('[ServiceWorker] Loaded and ready');

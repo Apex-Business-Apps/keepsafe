@@ -48,7 +48,10 @@ function PWAInstallPrompt() {
     const handler = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      setShowInstallHint(true);
+      // Only show hint if not already installed
+      if (!window.matchMedia('(display-mode: standalone)').matches) {
+        setShowInstallHint(true);
+      }
     };
 
     window.addEventListener('beforeinstallprompt', handler);

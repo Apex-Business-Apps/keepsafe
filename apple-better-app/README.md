@@ -17,22 +17,70 @@ Canada-first → US/EU later. Pricing: $12.99 / $22.99 / $40.99 (display only).
 ## Quick Start
 
 ```bash
+# 1. Start PostgreSQL + Adminer
 docker compose up -d
-cd api && cp .env.example .env && npm i && npm run db:setup && npm run dev
-# new tab
-cd web && cp .env.example .env && npm i && npm run dev
+
+# 2. Start API server (Terminal 1)
+cd api
+cp .env.example .env
+npm i
+npm run db:setup
+npm run dev
+# Expected: "API listening on :8080"
+
+# 3. Start web app (Terminal 2)
+cd web
+cp .env.example .env
+npm i
+npm run dev
+# Expected: Vite URL at http://localhost:5173
 ```
 
-Visit `http://localhost:3000` for the web app and `http://localhost:8081` for Adminer.
+Visit `http://localhost:5173` for the web app and `http://localhost:8081` for Adminer.
+
+## Acceptance Checks
+
+Run these to verify production readiness:
+
+```bash
+# 1. Health check
+curl -s http://localhost:8080/health
+# Expected: {"ok":true}
+
+# 2. Security headers present
+curl -I http://localhost:8080/health | grep -E 'X-Content-Type|Referrer-Policy|Permissions-Policy|Content-Security-Policy'
+
+# 3. CORS allows keepsafe.icu
+# (Requires testing from https://keepsafe.icu or via browser devtools)
+
+# 4. CRUD works
+# (Test via web UI at http://localhost:5173)
+
+# 5. CPSC recall worker
+cd api
+node src/recall/ingest-cpsc.js
+# Expected: Logs "CPSC: fetched <N>"
+
+# 6. Health Canada recall worker
+node src/recall/ingest-hc-rss.js
+# Expected: Logs "HC: parsed <N>"
+
+# 7. PDF Binder export
+# Visit Settings → Click "Export Binder" → Downloads keepsafe-binder.pdf (non-empty)
+
+# 8. PWA & Offline
+# Visit http://localhost:5173/manifest.webmanifest
+# Disconnect network → reload → Items page shows last cached 100 items
+```
 
 ## Features
 
 - 📦 **Progressive Item Management**: Two-field quick-add → progressive disclosure for details
 - 📷 **Smart Scanning**: BarcodeDetector API → ZXing fallback
 - ⚠️ **Official Recall Monitoring**: CPSC, Health Canada, EU Safety Gate
-- 📄 **Insurance Binder PDF**: One-click household inventory export
+- 📄 **Insurance Binder PDF**: One-click household inventory export (pdf-lib)
 - 🔐 **Email Demo Auth**: Simple JWT stub for MVP
-- 📱 **PWA**: Offline support, installable
+- 📱 **PWA**: Offline support (last 100 items), installable
 
 ## UX Principles Implemented
 
@@ -72,22 +120,57 @@ Clarity/Deference/Depth; 8pt spacing; type hierarchy: Title (24/700), H2 (18/600
 - **CA**: Health Canada Consumer Product Recalls RSS - nightly title/brand parsing  
 - **EU**: Safety Gate listings - scaffold parser (1 req/s, `EU_SAFETY=false` default)
 
+## Security & CORS
+
+### Security Headers (api/src/index.js)
+- `X-Content-Type-Options: nosniff`
+- `Referrer-Policy: strict-origin-when-cross-origin`
+- `Permissions-Policy: camera=(), microphone=(), geolocation=()`
+- `Content-Security-Policy`: Conservative policy allowing `self`, `data:`, `blob:`, keepsafe.icu
+- **HSTS disabled** until HTTPS confirmed end-to-end
+
+### CORS
+- Allowed origins: `http://localhost:5173` (dev) + `https://keepsafe.icu` (prod)
+- Configured via `ALLOWED_ORIGINS` env variable (comma-separated)
+- `Vary: Origin` header set for proper caching
+
 ## PWA & Performance
 
 - Manifest + service worker
-- Offline cache (last 100 items)
-- Install prompt hint
+- **Offline cache**: Last 100 items via LRU cache in API_CACHE_NAME
+- Install prompt hint (dismissible)
 - Core Web Vitals logging: LCP ≤2.5s, INP ≤200ms, CLS ≤0.1
 - Skeleton screens; route prefetch on idle
 
-## Security & Privacy (MVP)
+## Service Worker Strategy
 
-- PII-lite approach
-- Local export/delete flows
-- CORS → localhost only by default
-- Zod validation on all inputs
-- Naive JWT demo stub
-- Basic rate limiting
+### App Shell
+- Cache on install: `/`, `/index.html`, `/manifest.webmanifest`
+- Cache-first strategy for static assets
+
+### API Caching
+- **Network-first** for `/items` endpoint
+- On success: cache response + maintain LRU (keep only last 1 entry)
+- On offline: serve from cache → "last 100 items" available offline
+- Non-GET requests: skip service worker
+
+## Testing
+
+Run basic integration tests:
+
+```bash
+cd api
+npm test
+# Expected: All checks pass (health, CRUD, validation)
+```
+
+## Production Deployment
+
+1. Set environment variables in `.env` files
+2. Update `ALLOWED_ORIGINS` to include production domain
+3. Enable HTTPS + set HSTS header
+4. Configure recall workers as cron jobs (daily)
+5. Monitor Core Web Vitals via RUM
 
 ## Sources Implemented
 

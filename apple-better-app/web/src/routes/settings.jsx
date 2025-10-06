@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../lib/api.js';
+import { exportInsuranceBinder } from '../lib/pdfExport.js';
 
 function Navigation() {
   return (
@@ -61,41 +62,10 @@ function Settings({ onLogout }) {
   const handleExportBinder = async () => {
     try {
       const items = await api.getItems();
-      
-      // Group items by room
-      const itemsByRoom = items.reduce((acc, item) => {
-        const room = item.room || 'Uncategorized';
-        if (!acc[room]) acc[room] = [];
-        acc[room].push(item);
-        return acc;
-      }, {});
-
-      // Create PDF content
-      let pdfContent = `KeepSafe - Household Inventory Binder\nGenerated: ${new Date().toLocaleDateString()}\n\n`;
-      
-      Object.entries(itemsByRoom).forEach(([room, roomItems]) => {
-        pdfContent += `\n=== ${room} (${roomItems.length} items) ===\n\n`;
-        roomItems.forEach(item => {
-          pdfContent += `${item.name}\n`;
-          if (item.brand) pdfContent += `  Brand: ${item.brand}\n`;
-          if (item.model) pdfContent += `  Model: ${item.model}\n`;
-          if (item.serial) pdfContent += `  Serial: ${item.serial}\n`;
-          if (item.purchase_date) pdfContent += `  Purchase Date: ${item.purchase_date}\n`;
-          if (item.purchase_price) pdfContent += `  Price: $${item.purchase_price}\n`;
-          if (item.warranty_months) pdfContent += `  Warranty: ${item.warranty_months} months\n`;
-          if (item.recall_match) pdfContent += `  ⚠️ RECALL ALERT\n`;
-          pdfContent += '\n';
-        });
-      });
-
-      const blob = new Blob([pdfContent], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `keepsafe-binder-${new Date().toISOString().split('T')[0]}.txt`;
-      a.click();
+      await exportInsuranceBinder(items);
     } catch (error) {
       console.error('Binder export failed:', error);
+      alert('Failed to export PDF binder. Please try again.');
     }
   };
 
