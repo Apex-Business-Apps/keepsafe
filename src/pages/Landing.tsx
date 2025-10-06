@@ -264,8 +264,6 @@ const Landing = () => {
               No credit card
             </span>
             <span>•</span>
-            <span>Free forever</span>
-            <span>•</span>
             <span>2min setup</span>
           </div>
         </div>
