@@ -114,20 +114,28 @@ const Landing = () => {
           </p>
           
           {/* Single primary CTA below subhead */}
-          <div className="flex justify-center mb-16">
+          <div className="flex justify-center">
             <Button 
               size="lg" 
               onClick={() => navigate("/auth")} 
               className="text-lg h-14 px-10 gradient-accent hover:opacity-90 shadow-premium neon-effect transition-all duration-150 hover:scale-105 font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
-              aria-label="Start your free trial"
+              aria-label="Get Started with KeepSafe"
             >
-              Start Free Trial
-              <Zap className="ml-2 h-5 w-5" />
+              Get Started
             </Button>
           </div>
 
+          {/* Trust chips row under CTA */}
+          <ul className="hero__chips" aria-label="Key benefits">
+            <li>2-min setup</li>
+            <li aria-hidden="true">•</li>
+            <li>No credit card to start</li>
+            <li aria-hidden="true">•</li>
+            <li>Start free, upgrade anytime</li>
+          </ul>
+
           {/* Stats with unique styling */}
-          <div className="grid grid-cols-3 gap-8 max-w-3xl mx-auto pt-8 border-t border-primary/20">
+          <div className="grid grid-cols-3 gap-8 max-w-3xl mx-auto pt-12 mt-12 border-t border-primary/20">
             {stats.map((stat) => (
               <div key={stat.label} className="group text-center">
                 <div className="text-4xl md:text-5xl font-black mb-2 bg-gradient-to-br from-primary to-accent bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-150">

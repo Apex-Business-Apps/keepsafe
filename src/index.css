@@ -116,6 +116,34 @@ All colors MUST be HSL.
     --sidebar-border: 260 30% 18%;
     --sidebar-ring: 270 50% 70%;
   }
+
+  /* Hero trust chips */
+  .hero__chips {
+    margin-top: 12px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    justify-content: center;
+    list-style: none;
+    padding: 0;
+    color: rgba(255, 255, 255, 0.95);
+    font-weight: 600;
+    letter-spacing: 0.2px;
+  }
+
+  .hero__chips li {
+    white-space: nowrap;
+    opacity: 0.95;
+  }
+
+  /* Ensure chips stay legible on small screens */
+  @media (max-width: 640px) {
+    .hero__chips {
+      gap: 10px;
+      font-size: 14px;
+      flex-wrap: wrap;
+    }
+  }
 }
 
 @layer base {
