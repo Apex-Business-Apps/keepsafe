@@ -26,7 +26,7 @@ const Index = () => {
   const handleSignOut = useCallback(async () => {
     await supabase.auth.signOut();
     toast({ title: "Signed out successfully" });
-  }, [toast]);
+  }, []);
 
   const handleExportPDF = useCallback(async () => {
     if (items.length === 0) {
@@ -49,7 +49,7 @@ const Index = () => {
         variant: "destructive",
       });
     }
-  }, [items, session?.user?.id, toast]);
+  }, [items, session?.user?.id]);
 
   if (authLoading || !session) {
     return null;

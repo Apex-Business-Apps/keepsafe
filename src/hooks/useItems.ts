@@ -61,7 +61,7 @@ export const useItems = (userId: string | undefined) => {
     } finally {
       setLoading(false);
     }
-  }, [userId, toast]);
+  }, [userId]);
 
   useEffect(() => {
     fetchItems();

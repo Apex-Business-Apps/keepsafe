@@ -110,13 +110,16 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
         return;
       }
 
-      // SECURITY FIX: Store file path instead of signed URL to prevent expiry
-      const fileExt = receiptFile.name.split(".").pop();
+      // SECURITY: Sanitize filename to prevent path traversal
+      const fileExt = receiptFile.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
       const filePath = `${userId}/${Date.now()}.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
         .from("receipts")
-        .upload(filePath, receiptFile);
+        .upload(filePath, receiptFile, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (uploadError) {
         toast({
@@ -127,21 +130,20 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
         return;
       }
 
-      // Store only the file path, not the signed URL
       receiptFilePath = filePath;
     }
 
     await onSubmit({
-      name,
-      brand: brand || undefined,
-      category: category || undefined,
+      name: name.trim(),
+      brand: brand.trim() || undefined,
+      category: category.trim() || undefined,
       purchase_date: purchaseDate || undefined,
       warranty_months: warrantyMonths ? parseInt(warrantyMonths) : undefined,
       price: price ? parseFloat(price) : undefined,
-      serial_number: serialNumber || undefined,
-      barcode: barcode || undefined,
+      serial_number: serialNumber.trim() || undefined,
+      barcode: barcode.trim() || undefined,
       receipt_file_path: receiptFilePath || undefined,
-      notes: notes || undefined,
+      notes: notes.trim() || undefined,
     });
 
     // Reset form
