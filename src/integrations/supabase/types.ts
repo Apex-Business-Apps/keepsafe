@@ -190,13 +190,6 @@ export type Database = {
       }
     }
     Views: {
-      v_paid_clicks: {
-        Row: {
-          paid_clicks: number | null
-          week: string | null
-        }
-        Relationships: []
-      }
       v_pql: {
         Row: {
           items_count: number | null
