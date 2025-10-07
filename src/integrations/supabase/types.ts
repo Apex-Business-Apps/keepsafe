@@ -190,15 +190,6 @@ export type Database = {
       }
     }
     Views: {
-      v_activation: {
-        Row: {
-          first_item_at: string | null
-          items_count: number | null
-          last_item_at: string | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
       v_paid_clicks: {
         Row: {
           paid_clicks: number | null
