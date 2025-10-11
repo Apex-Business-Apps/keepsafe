@@ -190,14 +190,7 @@ export type Database = {
       }
     }
     Views: {
-      v_pql: {
-        Row: {
-          items_count: number | null
-          last_recall_alert_seen: string | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       get_activation_metrics: {
