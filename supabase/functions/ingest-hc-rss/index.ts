@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { DOMParser } from "https://deno.land/x/deno_dom/deno-dom-wasm.ts";
+import { DOMParser, Element } from "https://deno.land/x/deno_dom@v0.1.43/deno-dom-wasm.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 
 const corsHeaders = {
@@ -88,9 +88,10 @@ serve(async (req) => {
     const recalls = [];
 
     for (const item of items) {
-      const title = item.querySelector('title')?.textContent || '';
-      const link = item.querySelector('link')?.textContent || '';
-      const pubDate = item.querySelector('pubDate')?.textContent || '';
+      const el = item as Element;
+      const title = el.querySelector('title')?.textContent || '';
+      const link = el.querySelector('link')?.textContent || '';
+      const pubDate = el.querySelector('pubDate')?.textContent || '';
       
       recalls.push({ title, link, pubDate });
     }
