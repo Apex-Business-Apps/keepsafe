@@ -118,7 +118,7 @@ const Landing = () => {
             <Button 
               size="lg" 
               onClick={() => navigate("/auth")} 
-              className="text-lg h-14 px-10 gradient-accent hover:opacity-90 shadow-premium neon-effect transition-all duration-150 hover:scale-105 font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
+              className="text-lg h-14 px-10 gradient-accent hover:opacity-90 shadow-premium neon-effect transition-all duration-150 hover:scale-105 font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 text-primary"
               aria-label="Get Started with KeepSafe"
             >
               Get Started
