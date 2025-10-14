@@ -126,7 +126,7 @@ All colors MUST be HSL.
     justify-content: center;
     list-style: none;
     padding: 0;
-    color: rgba(255, 255, 255, 0.95);
+    color: hsl(var(--foreground) / 0.8);
     font-weight: 600;
     letter-spacing: 0.2px;
   }
