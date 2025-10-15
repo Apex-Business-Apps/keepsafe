@@ -59,5 +59,36 @@ FROM events GROUP BY week ORDER BY week DESC;
 - Loading skeletons
 - PWA with service worker caching
 
+## Icons
+
+### Source
+- Original SVG: `/public/icons/src/keepsafe_appicon.svg`
+
+### Regeneration
+To regenerate the icon pack:
+- Keep padding at 12–14% for standard icons
+- Keep padding at 20% for maskable/adaptive variants
+- Don't bake rounded corners; let platforms mask them
+- Update `manifest.webmanifest` only if filenames change
+
+### Icon Sizes
+- **PWA Core**: pwa-192x192.png, pwa-512x512.png
+- **Maskable**: icon-maskable-192.png, icon-maskable-512.png (20% padding)
+- **Extended Set**: 48, 72, 96, 128, 144, 152, 167, 180, 192, 256, 384, 512
+- **Apple Touch**: apple-touch-icon-180x180.png
+- **Favicons**: favicon.ico, favicon-32.png, favicon-16.png
+- **Safari Pinned**: safari-pinned-tab.svg (monochrome)
+
+### Validation
+Run icon validation checks:
+```bash
+node scripts/check-icons.js
+```
+
+This checks:
+- All icons exist at correct paths
+- Dimensions match expected sizes
+- File sizes are under 300 KB each
+
 ## License
 MIT
