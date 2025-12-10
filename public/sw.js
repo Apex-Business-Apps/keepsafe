@@ -1,8 +1,8 @@
 // KeepSafe Service Worker - Production Grade
-// Version: 1.0.0
+// Version: 2.0.0 - Added Push Notifications Support
 
-const CACHE_NAME = 'keepsafe-v1';
-const RUNTIME_CACHE = 'keepsafe-runtime-v1';
+const CACHE_NAME = 'keepsafe-v2';
+const RUNTIME_CACHE = 'keepsafe-runtime-v2';
 
 // Critical assets to cache immediately
 const PRECACHE_URLS = [
@@ -99,6 +99,83 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
+// Push notification event handler
+self.addEventListener('push', (event) => {
+  console.log('[ServiceWorker] Push received');
+  
+  let data = {
+    title: 'KeepSafe Alert',
+    body: 'You have a new notification',
+    icon: '/icons/icon-192.png',
+    badge: '/icons/icon-72.png',
+    url: '/',
+    tag: 'keepsafe-notification'
+  };
+
+  try {
+    if (event.data) {
+      const payload = event.data.json();
+      data = { ...data, ...payload };
+    }
+  } catch (e) {
+    console.log('[ServiceWorker] Error parsing push data:', e);
+    if (event.data) {
+      data.body = event.data.text();
+    }
+  }
+
+  const options = {
+    body: data.body,
+    icon: data.icon,
+    badge: data.badge,
+    tag: data.tag,
+    data: { url: data.url },
+    vibrate: [100, 50, 100],
+    requireInteraction: true,
+    actions: [
+      { action: 'view', title: 'View Details' },
+      { action: 'dismiss', title: 'Dismiss' }
+    ]
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
+  );
+});
+
+// Notification click handler
+self.addEventListener('notificationclick', (event) => {
+  console.log('[ServiceWorker] Notification clicked:', event.action);
+  
+  event.notification.close();
+
+  if (event.action === 'dismiss') {
+    return;
+  }
+
+  const urlToOpen = event.notification.data?.url || '/';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then(windowClients => {
+        // Check if app is already open
+        for (const client of windowClients) {
+          if (client.url.includes(self.location.origin) && 'focus' in client) {
+            client.navigate(urlToOpen);
+            return client.focus();
+          }
+        }
+        // Open new window
+        return clients.openWindow(urlToOpen);
+      })
+  );
+});
+
+// Notification close handler (for analytics)
+self.addEventListener('notificationclose', (event) => {
+  console.log('[ServiceWorker] Notification closed without action');
+});
+
 // Handle messages from clients
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
@@ -114,4 +191,4 @@ self.addEventListener('message', (event) => {
   }
 });
 
-console.log('[ServiceWorker] Loaded successfully');
+console.log('[ServiceWorker] Loaded successfully - v2.0.0');
