@@ -1,13 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera, QrCode, AlertCircle } from "lucide-react";
+import { Camera, QrCode, AlertCircle, Loader2, Sparkles, Check } from "lucide-react";
 import { Item } from "@/hooks/useItems";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useReceiptOCR } from "@/hooks/useReceiptOCR";
+import { useUPCLookup } from "@/hooks/useUPCLookup";
 
 interface ItemFormProps {
   onSubmit: (item: Omit<Item, "id" | "user_id" | "created_at" | "updated_at">) => Promise<any>;
@@ -29,6 +31,66 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [receiptInputKey, setReceiptInputKey] = useState(0);
   const [scanning, setScanning] = useState(false);
+
+  // OCR and UPC hooks
+  const { extracting, extractedData, extractFromImage, clearExtractedData } = useReceiptOCR();
+  const { looking, productData, lookupBarcode, clearProductData } = useUPCLookup();
+
+  // Auto-extract receipt when file is selected
+  useEffect(() => {
+    if (receiptFile) {
+      extractFromImage(receiptFile);
+    }
+  }, [receiptFile, extractFromImage]);
+
+  // Auto-lookup barcode when scanned
+  useEffect(() => {
+    if (barcode && barcode.length >= 8 && !looking && !productData) {
+      lookupBarcode(barcode);
+    }
+  }, [barcode, looking, productData, lookupBarcode]);
+
+  // Apply extracted receipt data
+  const applyExtractedData = () => {
+    if (!extractedData) return;
+
+    if (extractedData.store_name && !name) {
+      setName(extractedData.store_name);
+    }
+    if (extractedData.purchase_date && !purchaseDate) {
+      setPurchaseDate(extractedData.purchase_date);
+    }
+    if (extractedData.total_amount && !price) {
+      setPrice(extractedData.total_amount.toString());
+    }
+    // If there's a main item, use it
+    if (extractedData.items && extractedData.items.length > 0) {
+      const mainItem = extractedData.items[0];
+      if (!name) setName(mainItem.name);
+      if (!price && mainItem.price) setPrice(mainItem.price.toString());
+    }
+
+    toast({ title: "Receipt data applied!" });
+    clearExtractedData();
+  };
+
+  // Apply UPC product data
+  const applyProductData = () => {
+    if (!productData) return;
+
+    if (productData.name && !name) {
+      setName(productData.name);
+    }
+    if (productData.brand && !brand) {
+      setBrand(productData.brand);
+    }
+    if (productData.category && !category) {
+      setCategory(productData.category);
+    }
+
+    toast({ title: "Product data applied!" });
+    clearProductData();
+  };
 
   const handleBarcodeScanner = async () => {
     if (!("BarcodeDetector" in window)) {
@@ -54,10 +116,12 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
         try {
           const barcodes = await barcodeDetector.detect(video);
           if (barcodes.length > 0) {
-            setBarcode(barcodes[0].rawValue);
-            toast({ title: "Barcode scanned!", description: barcodes[0].rawValue });
+            const scannedBarcode = barcodes[0].rawValue;
+            setBarcode(scannedBarcode);
+            toast({ title: "Barcode scanned!", description: scannedBarcode });
             stream.getTracks().forEach(track => track.stop());
             setScanning(false);
+            // Auto-lookup will trigger via useEffect
           } else {
             requestAnimationFrame(detect);
           }
@@ -116,7 +180,6 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setName(value);
-    // Clear error on typing if valid
     if (nameError && value.trim().length > 0) {
       setNameError("");
     }
@@ -141,7 +204,6 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate before submit
     const isNameValid = validateName(name);
     const isPriceValid = validatePrice(price);
 
@@ -155,7 +217,6 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
 
     let receiptFilePath = "";
     if (receiptFile) {
-      // Validate file size (10MB max)
       const maxSize = 10 * 1024 * 1024;
       if (receiptFile.size > maxSize) {
         toast({
@@ -166,7 +227,6 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
         return;
       }
 
-      // Validate file type (images only)
       const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/heic'];
       if (!allowedTypes.includes(receiptFile.type)) {
         toast({
@@ -177,7 +237,6 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
         return;
       }
 
-      // SECURITY: Sanitize filename to prevent path traversal
       const fileExt = receiptFile.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
       const filePath = `${userId}/${Date.now()}.${fileExt}`;
       
@@ -213,7 +272,6 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
       notes: notes.trim() || undefined,
     });
 
-    // Optimistic update: show success immediately
     toast({ 
       title: "Item added successfully!",
       action: (
@@ -240,7 +298,9 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
     setBarcode("");
     setNotes("");
     setReceiptFile(null);
-    setReceiptInputKey(prev => prev + 1); // Force file input reset
+    setReceiptInputKey(prev => prev + 1);
+    clearExtractedData();
+    clearProductData();
   };
 
   return (
@@ -250,7 +310,57 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Single-column layout */}
+          {/* AI Data Extraction Banners */}
+          {extractedData && (
+            <div className="p-4 rounded-lg border border-primary/30 bg-primary/5 space-y-2">
+              <div className="flex items-center gap-2 text-primary">
+                <Sparkles className="h-4 w-4" />
+                <span className="font-medium">Receipt Data Extracted</span>
+                <span className="text-xs text-muted-foreground">
+                  ({extractedData.confidence} confidence)
+                </span>
+              </div>
+              <div className="text-sm text-muted-foreground">
+                {extractedData.store_name && <span>Store: {extractedData.store_name} • </span>}
+                {extractedData.total_amount && <span>${extractedData.total_amount} • </span>}
+                {extractedData.items?.length && <span>{extractedData.items.length} items</span>}
+              </div>
+              <Button 
+                type="button" 
+                size="sm" 
+                onClick={applyExtractedData}
+                className="mt-2"
+              >
+                <Check className="h-3 w-3 mr-1" />
+                Apply Data
+              </Button>
+            </div>
+          )}
+
+          {productData && (
+            <div className="p-4 rounded-lg border border-secondary/30 bg-secondary/5 space-y-2">
+              <div className="flex items-center gap-2 text-secondary-foreground">
+                <QrCode className="h-4 w-4" />
+                <span className="font-medium">Product Found</span>
+              </div>
+              <div className="text-sm text-muted-foreground">
+                {productData.name}
+                {productData.brand && <span> by {productData.brand}</span>}
+              </div>
+              <Button 
+                type="button" 
+                size="sm" 
+                variant="secondary"
+                onClick={applyProductData}
+                className="mt-2"
+              >
+                <Check className="h-3 w-3 mr-1" />
+                Apply Data
+              </Button>
+            </div>
+          )}
+
+          {/* Form Fields */}
           <div className="space-y-2">
             <Label htmlFor="name" className="text-base font-semibold">Item Name *</Label>
             <Input
@@ -270,6 +380,7 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
               </p>
             )}
           </div>
+
           <div className="space-y-2">
             <Label htmlFor="brand" className="text-base font-semibold">Brand</Label>
             <Input
@@ -279,6 +390,7 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
               className="h-12 text-base transition-all duration-150"
             />
           </div>
+
           <div className="space-y-2">
             <Label htmlFor="category" className="text-base font-semibold">Category</Label>
             <Input
@@ -288,6 +400,7 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
               className="h-12 text-base transition-all duration-150"
             />
           </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="purchaseDate" className="text-base font-semibold">Purchase Date</Label>
@@ -310,6 +423,7 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
               />
             </div>
           </div>
+
           <div className="space-y-2">
             <Label htmlFor="price" className="text-base font-semibold">Price ($)</Label>
             <Input
@@ -330,6 +444,7 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
               </p>
             )}
           </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="serialNumber" className="text-base font-semibold">Serial Number</Label>
@@ -346,7 +461,10 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
                 <Input
                   id="barcode"
                   value={barcode}
-                  onChange={(e) => setBarcode(e.target.value)}
+                  onChange={(e) => {
+                    setBarcode(e.target.value);
+                    clearProductData();
+                  }}
                   className="h-12 text-base transition-all duration-150"
                 />
                 <Button
@@ -354,17 +472,25 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
                   variant="outline"
                   size="icon"
                   onClick={handleBarcodeScanner}
-                  disabled={scanning}
-                  className="h-12 w-12 transition-all duration-150 hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
+                  disabled={scanning || looking}
+                  className="h-12 w-12 transition-all duration-150 hover:scale-105"
                   aria-label="Scan barcode"
                 >
-                  <QrCode className="h-5 w-5" />
+                  {scanning || looking ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <QrCode className="h-5 w-5" />
+                  )}
                 </Button>
               </div>
             </div>
           </div>
+
           <div className="space-y-2">
-            <Label htmlFor="receipt" className="text-base font-semibold">Receipt Photo</Label>
+            <Label htmlFor="receipt" className="text-base font-semibold">
+              Receipt Photo
+              {extracting && <span className="text-muted-foreground text-sm ml-2">(Analyzing...)</span>}
+            </Label>
             <div className="flex gap-2 items-center">
               <Input
                 key={receiptInputKey}
@@ -389,13 +515,19 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
                   };
                   input.click();
                 }}
-                className="h-12 w-12 transition-all duration-150 hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
+                disabled={extracting}
+                className="h-12 w-12 transition-all duration-150 hover:scale-105"
                 aria-label="Take photo of receipt"
               >
-                <Camera className="h-5 w-5" />
+                {extracting ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Camera className="h-5 w-5" />
+                )}
               </Button>
             </div>
           </div>
+
           <div className="space-y-2">
             <Label htmlFor="notes" className="text-base font-semibold">Notes</Label>
             <Textarea
@@ -405,9 +537,11 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
               className="min-h-24 text-base transition-all duration-150"
             />
           </div>
+
           <Button 
             type="submit" 
-            className="w-full h-12 text-base font-semibold transition-all duration-150 hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
+            className="w-full h-12 text-base font-semibold transition-all duration-150 hover:scale-[1.02]"
+            disabled={extracting}
           >
             Add Item
           </Button>
