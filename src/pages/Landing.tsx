@@ -109,7 +109,7 @@ const Landing = () => {
           </h1>
           
           <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed font-medium text-center">
-            Finally, a way to remember what you own—and get a heads-up when something's recalled. 
+            Finally, a way to remember what you own and get a heads-up when something's recalled. 
             Because <span className="text-accent font-bold">your stuff matters</span>.
           </p>
           
