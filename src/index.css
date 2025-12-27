@@ -37,6 +37,10 @@ All colors MUST be HSL.
     --destructive: 350 85% 58%;
     --destructive-foreground: 0 0% 100%;
 
+    /* Warning: Amber */
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
     --border: 260 20% 88%;
     --input: 260 20% 88%;
     --ring: 270 60% 65%;
@@ -91,6 +95,10 @@ All colors MUST be HSL.
 
     --destructive: 350 80% 55%;
     --destructive-foreground: 0 0% 100%;
+
+    /* Warning: Amber */
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
 
     --border: 260 30% 18%;
     --input: 260 30% 18%;
