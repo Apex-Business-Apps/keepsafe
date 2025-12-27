@@ -7,15 +7,20 @@ import { ItemList } from "@/components/ItemList";
 import { ItemListSkeleton } from "@/components/LoadingSkeleton";
 import { useItems } from "@/hooks/useItems";
 import { useAuthSession } from "@/hooks/useAuthSession";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { useActivityFeed } from "@/hooks/useActivityFeed";
+import { StatsCards, RecallAlerts, WarrantyTimeline, ActivityFeed } from "@/components/dashboard";
 import { generatePDF } from "@/utils/pdfExport";
 import { trackEvent } from "@/lib/trackEvent";
 import { toast } from "@/hooks/use-toast";
-import { Download, LogOut, Shield } from "lucide-react";
+import { Download, LogOut, Shield, Plus } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
   const { session, loading: authLoading } = useAuthSession();
   const { items, loading, addItem, deleteItem } = useItems(session?.user?.id);
+  const stats = useDashboardStats(items);
+  const { activities, loading: activitiesLoading, error: activitiesError } = useActivityFeed(session?.user?.id);
 
   useEffect(() => {
     if (!authLoading && !session) {
@@ -97,60 +102,57 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Empty State or CTA Section */}
-      {!loading && items.length === 0 && (
-        <div className="relative z-10 container mx-auto px-6 pt-12 pb-6">
-          <div className="glass-effect border border-primary/20 rounded-3xl p-12 text-center space-y-6 shadow-premium">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 mb-4">
-              <Shield className="h-10 w-10 text-primary" strokeWidth={2.5} />
-            </div>
-            <h2 className="text-4xl md:text-5xl font-black">
-              <span className="text-foreground">Let's Add Your</span>
-              <br />
-              <span className="bg-gradient-to-r from-primary via-primary-glow to-accent bg-clip-text text-transparent">
-                First Item
-              </span>
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
-              Start protecting your belongings in under a minute. Add an item, upload a receipt, and we'll monitor recalls automatically.
-            </p>
-            <ul className="text-left max-w-md mx-auto space-y-3 text-muted-foreground">
-              <li className="flex items-start gap-3">
-                <div className="mt-1 w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                  <span className="text-primary text-xs font-bold">✓</span>
-                </div>
-                <span>Automatically tracked warranties</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <div className="mt-1 w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                  <span className="text-primary text-xs font-bold">✓</span>
-                </div>
-                <span>Instant recall alerts for your safety</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <div className="mt-1 w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                  <span className="text-primary text-xs font-bold">✓</span>
-                </div>
-                <span>Export insurance binder in one click</span>
-              </li>
-            </ul>
-            <Button
-              size="lg"
-              onClick={() => document.getElementById('name')?.focus()}
-              className="text-lg h-14 px-10 gradient-accent hover:opacity-90 shadow-premium transition-all duration-150 hover:scale-105 font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
-            >
-              <Shield className="mr-2 h-5 w-5" />
-              Add Your First Item
-            </Button>
+      <main className="relative z-10 container mx-auto px-6 py-6 space-y-8">
+        {/* Stats Cards Row */}
+        <StatsCards
+          totalItems={stats.totalItems}
+          totalValue={stats.totalValue}
+          activeRecalls={stats.activeRecalls}
+          expiringWarranties={stats.expiringWarranties}
+          loading={loading}
+        />
+
+        {/* Dashboard Panels */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Recall Alerts - Takes priority */}
+          <div className="lg:col-span-1">
+            <RecallAlerts
+              items={stats.recallItems}
+              loading={loading}
+              userId={session.user.id}
+            />
+          </div>
+
+          {/* Warranty Timeline */}
+          <div className="lg:col-span-1">
+            <WarrantyTimeline
+              items={stats.warrantyItems}
+              loading={loading}
+            />
+          </div>
+
+          {/* Activity Feed */}
+          <div className="lg:col-span-1">
+            <ActivityFeed
+              activities={activities}
+              loading={activitiesLoading}
+              error={activitiesError}
+            />
           </div>
         </div>
-      )}
 
-      <main className="relative z-10 container mx-auto px-6 py-6 space-y-10">
+        {/* Add Item Form */}
         <div className="glass-effect border border-primary/20 rounded-2xl p-8 shadow-premium">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Plus className="h-5 w-5 text-primary" />
+            </div>
+            <h2 className="text-xl font-bold">Add New Item</h2>
+          </div>
           <ItemForm onSubmit={addItem} userId={session.user.id} />
         </div>
         
+        {/* Inventory List */}
         {loading ? (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
