@@ -11,6 +11,8 @@ import RecallDetail from "./pages/RecallDetail";
 import RecallBrandIndex from "./pages/RecallBrandIndex";
 import RecallDirectory from "./pages/RecallDirectory";
 import SitemapRoute from "./pages/SitemapRoute";
+import ItemsPage from "./pages/ItemsPage";
+import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +26,8 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/dashboard" element={<Index />} />
+          <Route path="/dashboard/items" element={<ItemsPage />} />
+          <Route path="/dashboard/settings" element={<SettingsPage />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/recalls" element={<RecallDirectory />} />
