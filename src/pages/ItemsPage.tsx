@@ -5,6 +5,7 @@ import { ItemForm } from "@/components/ItemForm";
 import { ItemList } from "@/components/ItemList";
 import { ItemSearchFilter } from "@/components/ItemSearchFilter";
 import { ItemListSkeleton } from "@/components/LoadingSkeleton";
+import { ExportMenu } from "@/components/ExportMenu";
 import { useItems, Item } from "@/hooks/useItems";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { generatePDF } from "@/utils/pdfExport";
@@ -56,6 +57,10 @@ const ItemsPage = () => {
     setFilteredItems(filtered);
   }, []);
 
+  const handleItemClick = useCallback((itemId: string) => {
+    navigate(`/dashboard/items/${itemId}`);
+  }, [navigate]);
+
   if (authLoading || !session) {
     return null;
   }
@@ -99,6 +104,11 @@ const ItemsPage = () => {
                 Your Inventory
               </h2>
               <div className="flex items-center gap-2">
+                <ExportMenu 
+                  items={items} 
+                  userId={session.user.id} 
+                  onExportPDF={handleExportPDF} 
+                />
                 <div className="px-3 py-1.5 glass-effect rounded-full border border-primary/20">
                   <span className="text-sm font-bold text-primary">
                     {filteredItems.length === items.length 
@@ -109,7 +119,7 @@ const ItemsPage = () => {
                 </div>
               </div>
             </div>
-            <ItemList items={filteredItems} onDelete={deleteItem} />
+            <ItemList items={filteredItems} onDelete={deleteItem} onItemClick={handleItemClick} />
           </div>
         )}
       </div>

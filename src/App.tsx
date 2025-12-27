@@ -12,6 +12,7 @@ import RecallBrandIndex from "./pages/RecallBrandIndex";
 import RecallDirectory from "./pages/RecallDirectory";
 import SitemapRoute from "./pages/SitemapRoute";
 import ItemsPage from "./pages/ItemsPage";
+import ItemDetailPage from "./pages/ItemDetailPage";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/" element={<Landing />} />
           <Route path="/dashboard" element={<Index />} />
           <Route path="/dashboard/items" element={<ItemsPage />} />
+          <Route path="/dashboard/items/:id" element={<ItemDetailPage />} />
           <Route path="/dashboard/settings" element={<SettingsPage />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/privacy" element={<Privacy />} />

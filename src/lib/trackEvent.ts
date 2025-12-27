@@ -10,7 +10,7 @@ const eventQueue = new Map<string, NodeJS.Timeout>();
 const DEBOUNCE_MS = 1000;
 
 export async function trackEvent(
-  name: 'signup' | 'item_added' | 'binder_exported' | 'recall_alert_seen' | 'paid_click',
+  name: 'signup' | 'item_added' | 'binder_exported' | 'recall_alert_seen' | 'paid_click' | 'export_csv' | 'export_json',
   props?: EventProps,
   userId?: string
 ) {

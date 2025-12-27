@@ -10,6 +10,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useReceiptOCR } from "@/hooks/useReceiptOCR";
 import { useUPCLookup } from "@/hooks/useUPCLookup";
+import { BarcodeScanner } from "@/components/BarcodeScanner";
 
 interface ItemFormProps {
   onSubmit: (item: Omit<Item, "id" | "user_id" | "created_at" | "updated_at">) => Promise<any>;
@@ -31,6 +32,7 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [receiptInputKey, setReceiptInputKey] = useState(0);
   const [scanning, setScanning] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
 
   // OCR and UPC hooks
   const { extracting, extractedData, extractFromImage, clearExtractedData } = useReceiptOCR();
@@ -92,61 +94,14 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
     clearProductData();
   };
 
-  const handleBarcodeScanner = async () => {
-    if (!("BarcodeDetector" in window)) {
-      toast({
-        title: "Barcode scanner not supported",
-        description: "Your browser doesn't support barcode scanning",
-        variant: "destructive",
-      });
-      return;
-    }
+  const handleBarcodeScanner = () => {
+    setScannerOpen(true);
+  };
 
-    try {
-      setScanning(true);
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-      const video = document.createElement("video");
-      video.srcObject = stream;
-      video.play();
-
-      // @ts-ignore
-      const barcodeDetector = new BarcodeDetector({ formats: ["ean_13", "ean_8", "upc_a", "upc_e"] });
-      
-      const detect = async () => {
-        try {
-          const barcodes = await barcodeDetector.detect(video);
-          if (barcodes.length > 0) {
-            const scannedBarcode = barcodes[0].rawValue;
-            setBarcode(scannedBarcode);
-            toast({ title: "Barcode scanned!", description: scannedBarcode });
-            stream.getTracks().forEach(track => track.stop());
-            setScanning(false);
-            // Auto-lookup will trigger via useEffect
-          } else {
-            requestAnimationFrame(detect);
-          }
-        } catch (err) {
-          requestAnimationFrame(detect);
-        }
-      };
-
-      video.addEventListener("loadeddata", () => {
-        detect();
-      });
-
-      setTimeout(() => {
-        stream.getTracks().forEach(track => track.stop());
-        setScanning(false);
-      }, 10000);
-
-    } catch (error) {
-      toast({
-        title: "Camera access denied",
-        description: "Please allow camera access to scan barcodes",
-        variant: "destructive",
-      });
-      setScanning(false);
-    }
+  const handleBarcodeScan = (scannedBarcode: string) => {
+    setBarcode(scannedBarcode);
+    clearProductData();
+    // Auto-lookup will trigger via useEffect
   };
 
   // Inline validation handlers
@@ -547,6 +502,13 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
           </Button>
         </form>
       </CardContent>
+      
+      {/* Barcode Scanner Dialog */}
+      <BarcodeScanner 
+        open={scannerOpen} 
+        onOpenChange={setScannerOpen} 
+        onScan={handleBarcodeScan} 
+      />
     </Card>
   );
 };
