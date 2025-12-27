@@ -3,28 +3,45 @@ import { Item } from "@/hooks/useItems";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, AlertTriangle, ExternalLink, Image as ImageIcon } from "lucide-react";
+import { Trash2, AlertTriangle, ExternalLink, Image as ImageIcon, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { useReceiptUrl } from "@/hooks/useReceiptUrl";
 
 interface ItemListProps {
   items: Item[];
   onDelete: (id: string) => void;
+  onItemClick?: (id: string) => void;
 }
 
-const ItemCard = memo(({ item, onDelete }: { item: Item; onDelete: (id: string) => void }) => {
-  // SECURITY FIX: Generate signed URL dynamically to prevent expiry
+const ItemCard = memo(({ 
+  item, 
+  onDelete, 
+  onItemClick 
+}: { 
+  item: Item; 
+  onDelete: (id: string) => void;
+  onItemClick?: (id: string) => void;
+}) => {
   const { signedUrl: receiptUrl, loading: receiptLoading } = useReceiptUrl(item.receipt_file_path);
   
   return (
-    <Card>
+    <Card 
+      className={`transition-all duration-200 ${onItemClick ? 'cursor-pointer hover:shadow-lg hover:border-primary/30' : ''}`}
+      onClick={() => onItemClick?.(item.id)}
+    >
       <CardHeader>
         <div className="flex justify-between items-start">
-          <CardTitle className="text-lg">{item.name}</CardTitle>
+          <CardTitle className="text-lg flex items-center gap-2">
+            {item.name}
+            {onItemClick && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+          </CardTitle>
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => onDelete(item.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(item.id);
+            }}
           >
             <Trash2 className="h-4 w-4 text-destructive" />
           </Button>
@@ -74,7 +91,7 @@ const ItemCard = memo(({ item, onDelete }: { item: Item; onDelete: (id: string) 
         </p>
       )}
       {item.receipt_file_path && (
-        <div className="text-sm">
+        <div className="text-sm" onClick={(e) => e.stopPropagation()}>
           <span className="font-medium">Receipt:</span>{" "}
           {receiptLoading ? (
             <span className="text-muted-foreground">Loading...</span>
@@ -98,6 +115,7 @@ const ItemCard = memo(({ item, onDelete }: { item: Item; onDelete: (id: string) 
           target="_blank"
           rel="noopener noreferrer"
           className="text-sm text-destructive hover:underline flex items-center gap-1"
+          onClick={(e) => e.stopPropagation()}
         >
           View Recall Details <ExternalLink className="h-3 w-3" />
         </a>
@@ -107,7 +125,7 @@ const ItemCard = memo(({ item, onDelete }: { item: Item; onDelete: (id: string) 
   );
 });
 
-export const ItemList = memo(({ items, onDelete }: ItemListProps) => {
+export const ItemList = memo(({ items, onDelete, onItemClick }: ItemListProps) => {
   if (items.length === 0) {
     return (
       <Card>
@@ -123,7 +141,7 @@ export const ItemList = memo(({ items, onDelete }: ItemListProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {items.map((item) => (
-        <ItemCard key={item.id} item={item} onDelete={onDelete} />
+        <ItemCard key={item.id} item={item} onDelete={onDelete} onItemClick={onItemClick} />
       ))}
     </div>
   );
