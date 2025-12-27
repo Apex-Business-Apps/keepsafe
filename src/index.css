@@ -210,4 +210,9 @@ All colors MUST be HSL.
   .clip-diagonal {
     clip-path: polygon(0 0, 100% 5%, 100% 100%, 0 95%);
   }
+
+  /* Safe area for mobile bottom nav (notch phones) */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
 }
