@@ -316,32 +316,28 @@ const ItemDetailPage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {item.receipt_file_path ? (
-                <div className="space-y-3">
-                  <p className="text-sm font-medium text-muted-foreground">Receipt</p>
+              <DocumentGallery userId={session.user.id} itemId={item.id} />
+
+              {item.receipt_file_path && (
+                <div className="space-y-2 pt-2 border-t">
+                  <p className="text-xs font-medium text-muted-foreground">Primary receipt</p>
                   {receiptLoading ? (
                     <Skeleton className="w-full aspect-[4/3] rounded-lg" />
                   ) : receiptUrl ? (
-                    <a 
-                      href={receiptUrl} 
-                      target="_blank" 
+                    <a
+                      href={receiptUrl}
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="block"
                     >
-                      <img 
-                        src={receiptUrl} 
-                        alt="Receipt" 
+                      <img
+                        src={receiptUrl}
+                        alt="Primary receipt"
                         className="w-full rounded-lg border object-cover aspect-[4/3] hover:opacity-90 transition-opacity"
                       />
                     </a>
-                  ) : (
-                    <p className="text-sm text-destructive">Failed to load receipt</p>
-                  )}
+                  ) : null}
                 </div>
-              ) : (
-                <p className="text-sm text-muted-foreground text-center py-8">
-                  No documents attached
-                </p>
               )}
 
               {/* Recall Info */}
