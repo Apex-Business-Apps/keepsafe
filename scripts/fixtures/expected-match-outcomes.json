@@ -1,0 +1,5 @@
+[
+  { "item_id": "item-1", "recall_id": 101, "matched": true, "min_score": 80, "reasonIncludes": ["barcode", "brand", "product/model"] },
+  { "item_id": "item-2", "recall_id": 102, "matched": true, "min_score": 50, "reasonIncludes": ["brand", "product/model"] },
+  { "item_id": "item-3", "recall_id": 101, "matched": false }
+]

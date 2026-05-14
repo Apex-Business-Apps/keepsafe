@@ -14,7 +14,7 @@ import { BarcodeScanner } from "@/components/BarcodeScanner";
 import { CategorySelect } from "@/components/CategorySelect";
 
 interface ItemFormProps {
-  onSubmit: (item: Omit<Item, "id" | "user_id" | "created_at" | "updated_at">) => Promise<any>;
+  onSubmit: (item: Omit<Item, "id" | "user_id" | "created_at" | "updated_at">) => Promise<Item | null>;
   userId: string;
 }
 

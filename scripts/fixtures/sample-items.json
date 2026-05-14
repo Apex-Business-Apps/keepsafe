@@ -1,0 +1,5 @@
+[
+  { "id": "item-1", "name": "Acme SafeHeat Model SH100 Space Heater", "brand": "Acme", "barcode": "012345678905" },
+  { "id": "item-2", "name": "Northwind Baby Stroller VX2", "brand": "Northwind", "barcode": "4006381333931" },
+  { "id": "item-3", "name": "Contoso Blender", "brand": "Contoso", "barcode": "777777777777" }
+]

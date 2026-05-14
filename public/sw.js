@@ -1,8 +1,9 @@
 // KeepSafe Service Worker - Production Grade
-// Version: 2.0.0 - Added Push Notifications Support
+// Version: 2.1.0 - deliberate static-shell caching
 
-const CACHE_NAME = 'keepsafe-v2';
-const RUNTIME_CACHE = 'keepsafe-runtime-v2';
+const CACHE_NAME = 'keepsafe-v3';
+const RUNTIME_CACHE = 'keepsafe-runtime-v3';
+const INVENTORY_SNAPSHOT_CACHE = 'keepsafe-inventory-snapshot-v1';
 
 // Critical assets to cache immediately
 const PRECACHE_URLS = [
@@ -54,6 +55,12 @@ self.addEventListener('fetch', (event) => {
 
   // Skip Supabase API calls (always fresh)
   if (url.hostname.includes('supabase.co')) {
+    return;
+  }
+
+  // Cache only static shell/assets; API data stays network-only unless explicitly snapshotted.
+  const isStaticAsset = ['script', 'style', 'image', 'font'].includes(request.destination) || url.pathname === '/' || url.pathname === '/index.html' || url.pathname.endsWith('.webmanifest');
+  if (!isStaticAsset) {
     return;
   }
 
@@ -191,4 +198,4 @@ self.addEventListener('message', (event) => {
   }
 });
 
-console.log('[ServiceWorker] Loaded successfully - v2.0.0');
+console.log('[ServiceWorker] Loaded successfully - v2.1.0');

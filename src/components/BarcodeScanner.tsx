@@ -9,6 +9,12 @@ import {
 import { Camera, X, Loader2, ScanBarcode, Flashlight } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
+type BarcodeDetectorCtor = new (options?: { formats?: string[] }) => {
+  detect: (source: HTMLVideoElement) => Promise<Array<{ rawValue: string }>>;
+};
+type TorchCapabilities = MediaTrackCapabilities & { torch?: boolean };
+type TorchConstraint = MediaTrackConstraintSet & { torch?: boolean };
+
 interface BarcodeScannerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -32,6 +38,45 @@ export const BarcodeScanner = ({ open, onOpenChange, onScan }: BarcodeScannerPro
     setTorchOn(false);
   }, []);
 
+  const detectBarcode = useCallback(async () => {
+    if (!videoRef.current || !streamRef.current) return;
+
+    try {
+      const BarcodeDetectorClass = (window as Window & { BarcodeDetector?: BarcodeDetectorCtor }).BarcodeDetector;
+      if (!BarcodeDetectorClass) {
+        setError("Barcode detection not supported. Please enter the barcode manually.");
+        return;
+      }
+      const barcodeDetector = new BarcodeDetectorClass({
+        formats: ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "code_39"]
+      });
+
+      const detect = async () => {
+        if (!videoRef.current || !streamRef.current?.active) return;
+
+        try {
+          const barcodes = await barcodeDetector.detect(videoRef.current);
+          if (barcodes.length > 0) {
+            const scannedBarcode = barcodes[0].rawValue;
+            onScan(scannedBarcode);
+            toast({ title: "Barcode scanned!", description: scannedBarcode });
+            stopCamera();
+            onOpenChange(false);
+            return;
+          }
+        } catch {
+          // Detection failures are transient on moving camera frames; keep scanning.
+        }
+
+        if (streamRef.current?.active) requestAnimationFrame(detect);
+      };
+
+      detect();
+    } catch {
+      setError("Failed to initialize barcode scanner");
+    }
+  }, [onScan, onOpenChange, stopCamera]);
+
   const startCamera = useCallback(async () => {
     setError(null);
     setScanning(true);
@@ -50,8 +95,8 @@ export const BarcodeScanner = ({ open, onOpenChange, onScan }: BarcodeScannerPro
 
       // Check for torch support
       const track = stream.getVideoTracks()[0];
-      const capabilities = track.getCapabilities?.();
-      setHasTorch(!!(capabilities as any)?.torch);
+      const capabilities = track.getCapabilities?.() as TorchCapabilities | undefined;
+      setHasTorch(Boolean(capabilities?.torch));
 
       // Start barcode detection
       if ("BarcodeDetector" in window) {
@@ -65,47 +110,7 @@ export const BarcodeScanner = ({ open, onOpenChange, onScan }: BarcodeScannerPro
       setError("Camera access denied. Please allow camera access to scan barcodes.");
       setScanning(false);
     }
-  }, []);
-
-  const detectBarcode = useCallback(async () => {
-    if (!videoRef.current || !streamRef.current) return;
-
-    try {
-      // @ts-ignore - BarcodeDetector is not in TypeScript types
-      const barcodeDetector = new BarcodeDetector({
-        formats: ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "code_39"]
-      });
-
-      const detect = async () => {
-        if (!videoRef.current || !streamRef.current?.active) return;
-
-        try {
-          const barcodes = await barcodeDetector.detect(videoRef.current);
-          if (barcodes.length > 0) {
-            const scannedBarcode = barcodes[0].rawValue;
-            onScan(scannedBarcode);
-            toast({ 
-              title: "Barcode scanned!", 
-              description: scannedBarcode 
-            });
-            stopCamera();
-            onOpenChange(false);
-            return;
-          }
-        } catch (err) {
-          // Detection error, continue scanning
-        }
-
-        if (streamRef.current?.active) {
-          requestAnimationFrame(detect);
-        }
-      };
-
-      detect();
-    } catch (err) {
-      setError("Failed to initialize barcode scanner");
-    }
-  }, [onScan, onOpenChange, stopCamera]);
+  }, [detectBarcode]);
 
   const toggleTorch = useCallback(async () => {
     if (!streamRef.current) return;
@@ -113,8 +118,7 @@ export const BarcodeScanner = ({ open, onOpenChange, onScan }: BarcodeScannerPro
     const track = streamRef.current.getVideoTracks()[0];
     try {
       await track.applyConstraints({
-        // @ts-ignore
-        advanced: [{ torch: !torchOn }]
+        advanced: [{ torch: !torchOn } as TorchConstraint]
       });
       setTorchOn(!torchOn);
     } catch (err) {

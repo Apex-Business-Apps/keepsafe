@@ -73,10 +73,11 @@ const Auth = () => {
           description: "Please check your email to verify your account.",
         });
       }
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Authentication failed";
       toast({
         title: "Authentication Error",
-        description: error.message,
+        description: message,
         variant: "destructive",
       });
     } finally {

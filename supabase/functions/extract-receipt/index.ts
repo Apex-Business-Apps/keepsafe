@@ -1,180 +1,82 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { buildCorsHeaders } from "../_shared/cors.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+async function checkRateLimit(admin: ReturnType<typeof createClient>, key: string, limit: number, windowSeconds: number) {
+  const now = new Date();
+  const resetAt = new Date(now.getTime() + windowSeconds * 1000).toISOString();
+  const { data } = await admin.from('rate_limits').select('count, reset_at').eq('key', key).maybeSingle();
+  if (!data || new Date(data.reset_at) <= now) {
+    await admin.from('rate_limits').upsert({ key, count: 1, reset_at: resetAt }, { onConflict: 'key' });
+    return true;
+  }
+  if (data.count >= limit) return false;
+  await admin.from('rate_limits').update({ count: data.count + 1 }).eq('key', key);
+  return true;
+}
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsHeaders = buildCorsHeaders(req);
+  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
+
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader) return new Response(JSON.stringify({ success: false, error: 'Authorization required' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+
+  const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+  const caller = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY') ?? '', { global: { headers: { Authorization: authHeader } } });
+  const admin = createClient(supabaseUrl, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');
+  const { data: { user }, error: userError } = await caller.auth.getUser();
+  if (userError || !user) return new Response(JSON.stringify({ success: false, error: 'Invalid authorization' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
   try {
     const { imageBase64 } = await req.json();
-
-    if (!imageBase64) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Image data is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    if (!imageBase64 || typeof imageBase64 !== 'string') {
+      return new Response(JSON.stringify({ success: false, error: 'Image data is required' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    if (imageBase64.length > 8_000_000) {
+      await admin.from('security_audit_log').insert({ user_id: user.id, action: 'receipt_ocr_rejected', resource: 'extract-receipt', success: false, details: { reason: 'payload_too_large' } });
+      return new Response(JSON.stringify({ success: false, error: 'Receipt image is too large. Add details manually or upload a smaller image.' }), { status: 413, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    if (!(await checkRateLimit(admin, `extract-receipt:${user.id}`, 10, 86400))) {
+      await admin.from('security_audit_log').insert({ user_id: user.id, action: 'receipt_ocr_rate_limited', resource: 'extract-receipt', success: false });
+      return new Response(JSON.stringify({ success: false, error: 'Receipt scan limit reached. Manual entry remains available.' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
-      console.error('LOVABLE_API_KEY not configured');
-      return new Response(
-        JSON.stringify({ success: false, error: 'AI service not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ success: false, error: 'Receipt scanning is unavailable. Add receipt details manually.' }), { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
-
-    console.log('Extracting receipt data from image...');
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Authorization': `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [
-          {
-            role: 'system',
-            content: `You are a receipt data extraction assistant. Extract structured data from receipt images.
-Always respond with valid JSON only, no markdown or explanation.`
-          },
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: `Extract the following information from this receipt image and return as JSON:
-{
-  "store_name": "Name of the store/merchant",
-  "purchase_date": "Date in YYYY-MM-DD format or null if unclear",
-  "total_amount": "Total amount as a number (no currency symbol)",
-  "items": [
-    {
-      "name": "Item name",
-      "price": "Price as number",
-      "quantity": 1
-    }
-  ],
-  "payment_method": "Payment method if visible (cash, card, etc.)",
-  "confidence": "high/medium/low based on image quality"
-}
-
-If any field cannot be determined, use null. Extract the most prominent/expensive items if there are too many.`
-              },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: imageBase64.startsWith('data:') ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`
-                }
-              }
-            ]
-          }
+          { role: 'system', content: 'Extract receipt data. Return valid JSON only.' },
+          { role: 'user', content: [
+            { type: 'text', text: 'Return JSON with store_name, purchase_date YYYY-MM-DD or null, total_amount number or null, items array of {name, price, quantity}, payment_method, confidence high/medium/low. Use null when unclear.' },
+            { type: 'image_url', image_url: { url: imageBase64.startsWith('data:') ? imageBase64 : `data:image/jpeg;base64,${imageBase64}` } }
+          ] }
         ],
-        tools: [
-          {
-            type: 'function',
-            function: {
-              name: 'extract_receipt_data',
-              description: 'Extract structured data from a receipt image',
-              parameters: {
-                type: 'object',
-                properties: {
-                  store_name: { type: 'string', description: 'Name of the store or merchant' },
-                  purchase_date: { type: 'string', description: 'Purchase date in YYYY-MM-DD format' },
-                  total_amount: { type: 'number', description: 'Total amount paid' },
-                  items: {
-                    type: 'array',
-                    items: {
-                      type: 'object',
-                      properties: {
-                        name: { type: 'string' },
-                        price: { type: 'number' },
-                        quantity: { type: 'number' }
-                      },
-                      required: ['name', 'price']
-                    }
-                  },
-                  payment_method: { type: 'string' },
-                  confidence: { type: 'string', enum: ['high', 'medium', 'low'] }
-                },
-                required: ['confidence']
-              }
-            }
-          }
-        ],
+        tools: [{ type: 'function', function: { name: 'extract_receipt_data', description: 'Extract structured receipt data', parameters: { type: 'object', properties: { store_name: { type: 'string' }, purchase_date: { type: 'string' }, total_amount: { type: 'number' }, items: { type: 'array', items: { type: 'object', properties: { name: { type: 'string' }, price: { type: 'number' }, quantity: { type: 'number' } }, required: ['name', 'price'] } }, payment_method: { type: 'string' }, confidence: { type: 'string', enum: ['high', 'medium', 'low'] } }, required: ['confidence'] } } }],
         tool_choice: { type: 'function', function: { name: 'extract_receipt_data' } }
       }),
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('AI API error:', response.status, errorText);
-      
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ success: false, error: 'Rate limit exceeded. Please try again later.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ success: false, error: 'AI credits exhausted. Please add funds.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
-      return new Response(
-        JSON.stringify({ success: false, error: 'Failed to process image' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      const status = response.status;
+      const error = status === 429 ? 'Receipt scanning is temporarily rate limited. Add details manually.' : status === 402 ? 'Receipt scanning credits are unavailable. Add details manually.' : 'Failed to process receipt. Add details manually.';
+      return new Response(JSON.stringify({ success: false, error }), { status: status === 429 ? 429 : 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     const data = await response.json();
-    console.log('AI response received');
-
-    // Extract the tool call result
-    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-    if (toolCall?.function?.arguments) {
-      const extractedData = JSON.parse(toolCall.function.arguments);
-      console.log('Extracted data:', JSON.stringify(extractedData));
-      
-      return new Response(
-        JSON.stringify({ success: true, data: extractedData }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Fallback: try to parse from message content
+    const args = data.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
     const content = data.choices?.[0]?.message?.content;
-    if (content) {
-      try {
-        const parsed = JSON.parse(content.replace(/```json\n?|\n?```/g, ''));
-        return new Response(
-          JSON.stringify({ success: true, data: parsed }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      } catch {
-        console.error('Failed to parse AI response:', content);
-      }
-    }
-
-    return new Response(
-      JSON.stringify({ success: false, error: 'Could not extract data from image' }),
-      { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-
+    const parsed = args ? JSON.parse(args) : JSON.parse(String(content || '{}').replace(/```json\n?|\n?```/g, ''));
+    return new Response(JSON.stringify({ success: true, data: parsed }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   } catch (error) {
     console.error('Error in extract-receipt function:', error);
-    return new Response(
-      JSON.stringify({ success: false, error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return new Response(JSON.stringify({ success: false, error: 'Receipt scanning failed. Add details manually.' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 });
