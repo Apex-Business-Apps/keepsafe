@@ -21,17 +21,17 @@ const Landing = () => {
     {
       icon: AlertTriangle,
       title: "Recall Monitoring",
-      description: "Automatic alerts when your items are recalled. Stay informed and keep your family safe."
+      description: "Evidence-based recall checks from official-source records with clear match reasons."
     },
     {
       icon: Lock,
       title: "Secure & Private",
-      description: "Your data is encrypted and protected. You control your information, always."
+      description: "Private, user-scoped records and receipt paths. You control your information, always."
     },
     {
       icon: Smartphone,
       title: "Works Offline",
-      description: "Access your inventory anytime, anywhere. Progressive web app works without internet."
+      description: "Access the last useful inventory snapshot and app shell when the network is unavailable."
     },
     {
       icon: Shield,
@@ -41,9 +41,9 @@ const Landing = () => {
   ];
 
   const stats = [
-    { value: "10,000+", label: "Items Protected" },
-    { value: "99.9%", label: "Uptime" },
-    { value: "500+", label: "Happy Families" }
+    { value: "Official", label: "Recall Sources" },
+    { value: "Private", label: "Receipt Storage" },
+    { value: "Manual-first", label: "Fallback Flows" }
   ];
 
   return (
@@ -94,7 +94,7 @@ const Landing = () => {
             <div className="inline-flex items-center gap-2 px-5 py-2 glass-effect rounded-full text-sm font-bold border border-accent/30 neon-effect">
               <Zap className="h-4 w-4 text-accent" />
               <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                Next-Gen Home Protection
+                Safety + Proof Inventory
               </span>
             </div>
           </div>

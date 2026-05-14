@@ -10,13 +10,16 @@ verify_jwt = true
 verify_jwt = false
 
 [functions.extract-receipt]
-verify_jwt = false
+verify_jwt = true
 
 [functions.lookup-upc]
-verify_jwt = false
+verify_jwt = true
 
 [functions.send-push]
 verify_jwt = true
 
 [functions.register-push]
-verify_jwt = false
+verify_jwt = true
+
+[functions.track-event]
+verify_jwt = true

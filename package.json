@@ -8,7 +8,10 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "validate:recalls": "node scripts/validate-recall-matching.mjs",
+    "validate:schema": "node scripts/validate-schema-alignment.mjs",
+    "validate:claims": "node scripts/validate-landing-claims.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

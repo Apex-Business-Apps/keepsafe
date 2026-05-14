@@ -1,3 +1,5 @@
+> **Archive note:** this subtree is archived/experimental and is not the canonical KeepSafe implementation. Production development, schema changes, recall intelligence, security hardening, and PWA work belong in the root React/Vite/Supabase app.
+
 # KeepSafe - Home Inventory + Recall Guardian
 
 Mass-consumer PWA for cataloging household items, storing receipts, tracking warranty expiries, and alerting on official product recalls.

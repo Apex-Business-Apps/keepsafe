@@ -19,6 +19,10 @@ export interface Item {
   notes?: string;
   recall_match?: boolean;
   recall_url?: string;
+  recall_match_score?: number;
+  recall_match_reason?: string;
+  recall_source_system?: string;
+  recall_published_date?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -53,7 +57,34 @@ export const useItems = (userId: string | undefined) => {
         });
         setItems([]);
       } else {
-        setItems(data || []);
+        const rows = data || [];
+        const recalledIds = rows.filter((item) => item.recall_match).map((item) => item.id);
+        if (recalledIds.length === 0) {
+          setItems(rows);
+        } else {
+          const { data: matches, error: matchesError } = await supabase
+            .from("item_recall_matches")
+            .select("item_id, match_score, match_reason, source_system, published_date")
+            .in("item_id", recalledIds)
+            .order("match_score", { ascending: false });
+
+          if (matchesError) {
+            console.warn("Recall evidence unavailable:", matchesError.message);
+            setItems(rows);
+          } else {
+            const bestMatchByItem = new Map((matches || []).map((match) => [match.item_id, match]));
+            setItems(rows.map((item) => {
+              const match = bestMatchByItem.get(item.id);
+              return match ? {
+                ...item,
+                recall_match_score: match.match_score,
+                recall_match_reason: match.match_reason,
+                recall_source_system: match.source_system || undefined,
+                recall_published_date: match.published_date || undefined,
+              } : item;
+            }));
+          }
+        }
       }
     } catch (err) {
       console.error("Unexpected error fetching items:", err);
@@ -94,9 +125,9 @@ export const useItems = (userId: string | undefined) => {
         return null;
       }
 
+      setItems((current) => [data, ...current]);
       toast({ title: "Item added successfully" });
       await trackEvent('item_added', { name: item.name, category: item.category || 'uncategorized' }, userId);
-      await fetchItems();
       return data;
     } catch (err) {
       console.error("Unexpected error adding item:", err);
@@ -126,8 +157,8 @@ export const useItems = (userId: string | undefined) => {
         return false;
       }
 
+      setItems((current) => current.map((item) => item.id === id ? { ...item, ...updates } : item));
       toast({ title: "Item updated successfully" });
-      await fetchItems();
       return true;
     } catch (err) {
       console.error("Unexpected error updating item:", err);
@@ -157,8 +188,12 @@ export const useItems = (userId: string | undefined) => {
         return false;
       }
 
-      toast({ title: "Item deleted successfully" });
-      await fetchItems();
+      const deleted = items.find((item) => item.id === id);
+      setItems((current) => current.filter((item) => item.id !== id));
+      toast({
+        title: "Item deleted",
+        description: deleted ? `${deleted.name} was removed.` : "Item was removed.",
+      });
       return true;
     } catch (err) {
       console.error("Unexpected error deleting item:", err);

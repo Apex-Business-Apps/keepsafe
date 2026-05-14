@@ -1,0 +1,4 @@
+[
+  { "id": 101, "title": "Acme recalls SafeHeat SH100 space heaters due to fire hazard", "brand": "Acme", "model": "SafeHeat SH100", "source_system": "cpsc", "source_url": "https://www.cpsc.gov/Recalls/acme-safeheat-sh100", "published_date": "2026-01-10", "affected_barcodes": ["012345678905"] },
+  { "id": 102, "title": "Northwind recalls VX2 strollers due to fall hazard", "brand": "Northwind", "model": "VX2", "source_system": "health_canada", "source_url": "https://recalls-rappels.canada.ca/northwind-vx2", "published_date": "2026-02-15", "affected_barcodes": [] }
+]

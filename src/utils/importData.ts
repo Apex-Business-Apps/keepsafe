@@ -48,7 +48,7 @@ export const parseCSV = (text: string): ImportResult => {
         const n = parseInt(raw, 10);
         if (!isNaN(n)) item.warranty_months = n;
       } else if (key === "price") {
-        const n = parseFloat(raw.replace(/[^0-9.\-]/g, ""));
+        const n = parseFloat(raw.replace(/[^0-9.-]/g, ""));
         if (!isNaN(n)) item.price = n;
       } else {
         (item as Record<string, unknown>)[key] = raw;

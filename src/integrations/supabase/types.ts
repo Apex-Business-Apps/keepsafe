@@ -98,37 +98,145 @@ export type Database = {
         }
         Relationships: []
       }
+      item_recall_matches: {
+        Row: {
+          created_at: string | null
+          id: string
+          item_id: string
+          match_reason: string
+          match_score: number
+          matched_barcode: string | null
+          matched_brand_tokens: string[] | null
+          matched_model_tokens: string[] | null
+          published_date: string | null
+          recall_id: number
+          source_system: string | null
+          source_url: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          item_id: string
+          match_reason: string
+          match_score: number
+          matched_barcode?: string | null
+          matched_brand_tokens?: string[] | null
+          matched_model_tokens?: string[] | null
+          published_date?: string | null
+          recall_id: number
+          source_system?: string | null
+          source_url?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          item_id?: string
+          match_reason?: string
+          match_score?: number
+          matched_barcode?: string | null
+          matched_brand_tokens?: string[] | null
+          matched_model_tokens?: string[] | null
+          published_date?: string | null
+          recall_id?: number
+          source_system?: string | null
+          source_url?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: { auth: string; created_at: string | null; endpoint: string; id: string; p256dh: string; updated_at: string | null; user_id: string }
+        Insert: { auth: string; created_at?: string | null; endpoint: string; id?: string; p256dh: string; updated_at?: string | null; user_id: string }
+        Update: { auth?: string; created_at?: string | null; endpoint?: string; id?: string; p256dh?: string; updated_at?: string | null; user_id?: string }
+        Relationships: []
+      }
+      rate_limits: {
+        Row: { count: number; key: string; reset_at: string; updated_at: string | null }
+        Insert: { count?: number; key: string; reset_at: string; updated_at?: string | null }
+        Update: { count?: number; key?: string; reset_at?: string; updated_at?: string | null }
+        Relationships: []
+      }
       recalls: {
         Row: {
+          affected_barcodes: string[] | null
           brand: string
+          content_fingerprint: string | null
           created_at: string | null
+          hazard: string | null
           id: number
+          last_seen_at: string | null
           model: string
+          normalized_brand_tokens: string[] | null
+          normalized_model_tokens: string[] | null
+          normalized_name_tokens: string[] | null
           published_date: string | null
+          raw_payload: Json | null
+          remedy: string | null
           source: string
+          source_id: string | null
+          source_system: string | null
+          source_url: string | null
           title: string
+          updated_at: string | null
           url: string
         }
         Insert: {
+          affected_barcodes?: string[] | null
           brand: string
+          content_fingerprint?: string | null
           created_at?: string | null
+          hazard?: string | null
           id?: number
+          last_seen_at?: string | null
           model: string
+          normalized_brand_tokens?: string[] | null
+          normalized_model_tokens?: string[] | null
+          normalized_name_tokens?: string[] | null
           published_date?: string | null
+          raw_payload?: Json | null
+          remedy?: string | null
           source: string
+          source_id?: string | null
+          source_system?: string | null
+          source_url?: string | null
           title: string
+          updated_at?: string | null
           url: string
         }
         Update: {
+          affected_barcodes?: string[] | null
           brand?: string
+          content_fingerprint?: string | null
           created_at?: string | null
+          hazard?: string | null
           id?: number
+          last_seen_at?: string | null
           model?: string
+          normalized_brand_tokens?: string[] | null
+          normalized_model_tokens?: string[] | null
+          normalized_name_tokens?: string[] | null
           published_date?: string | null
+          raw_payload?: Json | null
+          remedy?: string | null
           source?: string
+          source_id?: string | null
+          source_system?: string | null
+          source_url?: string | null
           title?: string
+          updated_at?: string | null
           url?: string
         }
+        Relationships: []
+      }
+      upc_cache: {
+        Row: { barcode: string; cached_at: string | null; lookup_count: number | null; product_data: Json; source: string | null; updated_at: string | null }
+        Insert: { barcode: string; cached_at?: string | null; lookup_count?: number | null; product_data: Json; source?: string | null; updated_at?: string | null }
+        Update: { barcode?: string; cached_at?: string | null; lookup_count?: number | null; product_data?: Json; source?: string | null; updated_at?: string | null }
         Relationships: []
       }
       security_audit_log: {

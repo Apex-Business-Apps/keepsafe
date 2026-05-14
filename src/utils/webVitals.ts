@@ -1,5 +1,5 @@
 // Core Web Vitals logging for performance monitoring
-// Thresholds: LCP < 2.5s (good), INP < 200ms (good), CLS < 0.1 (good)
+// Thresholds: LCP < 2.5s (good), first-input delay proxy < 100ms (good), CLS < 0.1 (good)
 
 interface WebVitalsMetric {
   name: string;
@@ -11,8 +11,8 @@ function getRating(name: string, value: number): 'good' | 'needs-improvement' | 
   if (name === 'LCP') {
     return value <= 2500 ? 'good' : value <= 4000 ? 'needs-improvement' : 'poor';
   }
-  if (name === 'INP') {
-    return value <= 200 ? 'good' : value <= 500 ? 'needs-improvement' : 'poor';
+  if (name === 'FID_PROXY') {
+    return value <= 100 ? 'good' : value <= 300 ? 'needs-improvement' : 'poor';
   }
   if (name === 'CLS') {
     return value <= 0.1 ? 'good' : value <= 0.25 ? 'needs-improvement' : 'poor';
@@ -59,7 +59,7 @@ export function initWebVitals() {
 
   console.log('%c[Web Vitals] Performance monitoring active', 'color: #10b981; font-weight: bold; font-size: 14px;');
   console.log('%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'color: #6366f1;');
-  console.log('%cTargets: LCP ≤ 2.5s | INP ≤ 200ms | CLS ≤ 0.1', 'color: #8b5cf6; font-weight: bold;');
+  console.log('%cTargets: LCP ≤ 2.5s | first-input delay proxy ≤ 100ms | CLS ≤ 0.1', 'color: #8b5cf6; font-weight: bold;');
   console.log('%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'color: #6366f1;');
 
   // Largest Contentful Paint (LCP)
@@ -81,7 +81,7 @@ export function initWebVitals() {
     console.warn('LCP observer not supported');
   }
 
-  // Interaction to Next Paint (INP) - using first-input as proxy
+  // First-input delay proxy. This is not a full INP measurement.
   const inpObserver = new PerformanceObserver((list) => {
     const entries = list.getEntries();
     entries.forEach((entry) => {
@@ -89,9 +89,9 @@ export function initWebVitals() {
       const value = fidEntry.processingStart - fidEntry.startTime;
       
       logMetric({
-        name: 'INP',
+        name: 'FID_PROXY',
         value,
-        rating: getRating('INP', value),
+        rating: getRating('FID_PROXY', value),
       });
     });
   });
@@ -99,7 +99,7 @@ export function initWebVitals() {
   try {
     inpObserver.observe({ type: 'first-input', buffered: true });
   } catch (e) {
-    console.warn('INP observer not supported');
+    console.warn('First-input observer not supported');
   }
 
   // Cumulative Layout Shift (CLS)

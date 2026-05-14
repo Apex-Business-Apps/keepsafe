@@ -36,8 +36,8 @@ export class ErrorBoundary extends Component<Props, State> {
     });
 
     // Track error event
-    if (typeof window !== 'undefined' && (window as any).trackEvent) {
-      (window as any).trackEvent('app_error', {
+    if (typeof window !== 'undefined' && (window as Window & { trackEvent?: (name: string, props: Record<string, unknown>) => void }).trackEvent) {
+      (window as Window & { trackEvent?: (name: string, props: Record<string, unknown>) => void }).trackEvent('app_error', {
         error: error.message,
         stack: error.stack?.substring(0, 200),
       });

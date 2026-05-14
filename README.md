@@ -55,7 +55,7 @@ FROM events GROUP BY week ORDER BY week DESC;
 - See `SECURITY.md` for reporting vulnerabilities
 
 ## Performance
-- Core Web Vitals monitoring (LCP < 2.5s, INP < 200ms, CLS < 0.1)
+- Browser performance logging (LCP, CLS, and a first-input delay proxy; no claimed full INP measurement)
 - Loading skeletons
 - PWA with service worker caching
 

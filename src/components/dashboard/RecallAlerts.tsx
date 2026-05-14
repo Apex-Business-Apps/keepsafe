@@ -10,6 +10,10 @@ interface RecallItem {
   name: string;
   brand?: string;
   recall_url?: string;
+  recall_match_score?: number;
+  recall_match_reason?: string;
+  recall_source_system?: string;
+  recall_published_date?: string;
 }
 
 interface RecallAlertsProps {
@@ -93,6 +97,17 @@ export function RecallAlerts({ items, loading = false, userId }: RecallAlertsPro
               <p className="font-semibold">{item.name}</p>
               {item.brand && (
                 <p className="text-sm text-muted-foreground">{item.brand}</p>
+              )}
+              {item.recall_match_reason && (
+                <p className="mt-1 text-xs text-muted-foreground max-w-sm">
+                  Evidence: {item.recall_match_reason}
+                  {typeof item.recall_match_score === "number" ? ` (${item.recall_match_score}/100)` : ""}
+                </p>
+              )}
+              {item.recall_source_system && (
+                <Badge variant="outline" className="mt-2 text-[10px] uppercase tracking-wide">
+                  {item.recall_source_system.replace("_", " ")}
+                </Badge>
               )}
             </div>
             <Button
