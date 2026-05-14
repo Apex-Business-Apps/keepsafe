@@ -27,6 +27,8 @@ import { useItems, Item } from "@/hooks/useItems";
 import { useReceiptUrl } from "@/hooks/useReceiptUrl";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { CategorySelect } from "@/components/CategorySelect";
+import { DocumentGallery } from "@/components/DocumentGallery";
 
 const ItemDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -210,9 +212,10 @@ const ItemDetailPage = () => {
                   </div>
                   <div className="space-y-2">
                     <Label>Category</Label>
-                    <Input 
-                      value={editCategory} 
-                      onChange={(e) => setEditCategory(e.target.value)}
+                    <CategorySelect
+                      value={editCategory}
+                      onChange={setEditCategory}
+                      userId={session.user.id}
                     />
                   </div>
                   <div className="space-y-2">
