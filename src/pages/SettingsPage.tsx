@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { CategoryManager } from "@/components/CategoryManager";
 
 const SettingsPage = () => {
   const navigate = useNavigate();
@@ -116,6 +117,9 @@ const SettingsPage = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Categories Manager - full width */}
+        <CategoryManager userId={session.user.id} />
       </div>
     </DashboardLayout>
   );

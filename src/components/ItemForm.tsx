@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useReceiptOCR } from "@/hooks/useReceiptOCR";
 import { useUPCLookup } from "@/hooks/useUPCLookup";
 import { BarcodeScanner } from "@/components/BarcodeScanner";
+import { CategorySelect } from "@/components/CategorySelect";
 
 interface ItemFormProps {
   onSubmit: (item: Omit<Item, "id" | "user_id" | "created_at" | "updated_at">) => Promise<any>;
@@ -348,11 +349,10 @@ export const ItemForm = ({ onSubmit, userId }: ItemFormProps) => {
 
           <div className="space-y-2">
             <Label htmlFor="category" className="text-base font-semibold">Category</Label>
-            <Input
-              id="category"
+            <CategorySelect
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="h-12 text-base transition-all duration-150"
+              onChange={setCategory}
+              userId={userId}
             />
           </div>
 
