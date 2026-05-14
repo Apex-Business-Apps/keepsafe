@@ -6,6 +6,7 @@ import { ItemList } from "@/components/ItemList";
 import { ItemSearchFilter } from "@/components/ItemSearchFilter";
 import { ItemListSkeleton } from "@/components/LoadingSkeleton";
 import { ExportMenu } from "@/components/ExportMenu";
+import { ImportMenu } from "@/components/ImportMenu";
 import { useItems, Item } from "@/hooks/useItems";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { generatePDF } from "@/utils/pdfExport";
@@ -103,7 +104,8 @@ const ItemsPage = () => {
               <h2 className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 Your Inventory
               </h2>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <ImportMenu onAdd={addItem} />
                 <ExportMenu 
                   items={items} 
                   userId={session.user.id} 

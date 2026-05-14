@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Trash2, AlertTriangle, ExternalLink, Image as ImageIcon, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { useReceiptUrl } from "@/hooks/useReceiptUrl";
+import { useCategories } from "@/hooks/useCategories";
+import { useAuthSession } from "@/hooks/useAuthSession";
 
 interface ItemListProps {
   items: Item[];
@@ -23,6 +25,8 @@ const ItemCard = memo(({
   onItemClick?: (id: string) => void;
 }) => {
   const { signedUrl: receiptUrl, loading: receiptLoading } = useReceiptUrl(item.receipt_file_path);
+  const { session } = useAuthSession();
+  const { getColor } = useCategories(session?.user?.id);
   
   return (
     <Card 
@@ -60,8 +64,13 @@ const ItemCard = memo(({
         </p>
       )}
       {item.category && (
-        <p className="text-sm">
-          <span className="font-medium">Category:</span> {item.category}
+        <p className="text-sm flex items-center gap-1.5">
+          <span className="font-medium">Category:</span>
+          <span
+            className="inline-block w-2 h-2 rounded-full"
+            style={{ backgroundColor: getColor(item.category) }}
+          />
+          {item.category}
         </p>
       )}
       {item.purchase_date && (
