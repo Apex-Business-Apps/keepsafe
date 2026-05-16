@@ -184,53 +184,40 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Social Proof */}
+      {/* Trust Principles */}
       <section className="py-24 px-4 bg-background">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-black text-foreground mb-4">
-              Loved by <span className="text-primary">Thousands</span>
+              Built for <span className="text-primary">Verifiable Trust</span>
             </h2>
-            <p className="text-lg text-muted-foreground font-medium">Real results from real users</p>
+            <p className="text-lg text-muted-foreground font-medium">No fake counters, no fabricated testimonials, just safety and proof workflows you can validate.</p>
           </div>
-          
+
           <div className="grid md:grid-cols-3 gap-6">
             {[
               {
-                quote: "KeepSafe saved me thousands when my house was burglarized. Had everything documented for insurance.",
-                author: "Sarah M.",
-                role: "Homeowner"
+                title: "Official-source recalls",
+                detail: "Recall data is sourced from official systems and stored with source URL, source system, and published date."
               },
               {
-                quote: "The recall alerts are amazing. Got notified about a crib recall before it was on the news.",
-                author: "Michael T.",
-                role: "Parent"
+                title: "Evidence-based matching",
+                detail: "Recall matches include visible reasons such as barcode evidence and matched brand/model tokens."
               },
               {
-                quote: "So easy to use. Took me 30 minutes to catalog my entire home. Worth every second.",
-                author: "Jessica L.",
-                role: "Young Professional"
+                title: "Private proof records",
+                detail: "Receipts and proof files are user-scoped so your records stay tied to your account."
               }
-            ].map((testimonial, index) => (
-              <div 
-                key={index}
-                className="glass-effect border border-primary/20 rounded-2xl p-6 hover:border-accent/50 transition-all duration-300 hover:shadow-premium hover:-translate-y-1"
-              >
-                <div className="flex gap-1 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <svg key={i} className="w-4 h-4 text-accent fill-current" viewBox="0 0 20 20">
-                      <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                    </svg>
-                  ))}
-                </div>
-                <p className="text-foreground/90 mb-6 leading-relaxed font-medium">
-                  "{testimonial.quote}"
-                </p>
-                <div className="pt-4 border-t border-primary/10">
-                  <p className="font-bold text-foreground">{testimonial.author}</p>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide">{testimonial.role}</p>
-                </div>
-              </div>
+            ].map((principle) => (
+              <Card key={principle.title} className="glass-effect border border-primary/20 rounded-2xl p-6 hover:border-accent/50 transition-all duration-300 hover:shadow-premium hover:-translate-y-1">
+                <CardContent className="p-0">
+                  <div className="flex items-start gap-3 mb-3">
+                    <Eye className="h-5 w-5 text-accent mt-1" />
+                    <h3 className="text-xl font-black text-foreground">{principle.title}</h3>
+                  </div>
+                  <p className="text-muted-foreground leading-relaxed text-sm">{principle.detail}</p>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
