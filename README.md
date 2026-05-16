@@ -4,6 +4,12 @@
 
 Canada-first home inventory PWA with official product recall monitoring (CPSC, Health Canada).
 
+
+## Canonical App Scope
+
+The **root** React/Vite/Supabase app is the only shipping implementation.
+`apple-better-app/` is archived/experimental and out of scope for production feature work.
+
 ## Features
 
 - 📦 **Item Management**: Catalog items with brand, model, serial, receipts, warranty tracking

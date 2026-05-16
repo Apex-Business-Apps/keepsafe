@@ -20,13 +20,14 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   const authHeader = req.headers.get('Authorization');
+  const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+  const admin = createClient(supabaseUrl, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');
   if (!authHeader) {
+    await admin.from('security_audit_log').insert({ action: 'lookup_upc_denied', resource: 'lookup-upc', success: false, details: { reason: 'missing_authorization_header' } });
     return new Response(JSON.stringify({ success: false, error: 'Authorization required' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 
-  const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
   const anon = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY') ?? '', { global: { headers: { Authorization: authHeader } } });
-  const admin = createClient(supabaseUrl, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');
   const { data: { user }, error: userError } = await anon.auth.getUser();
   if (userError || !user) {
     await admin.from('security_audit_log').insert({ action: 'lookup_upc_denied', resource: 'lookup-upc', success: false, details: { reason: 'invalid_jwt' } });

@@ -22,15 +22,26 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   const authHeader = req.headers.get('Authorization');
-  if (!authHeader) return new Response(JSON.stringify({ error: 'Authorization required' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+  const admin = createClient(supabaseUrl, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');
+  if (!authHeader) {
+    await admin.from('security_audit_log').insert({ action: 'track_event_denied', resource: 'track-event', success: false, details: { reason: 'missing_authorization_header' } });
+    return new Response(JSON.stringify({ error: 'Authorization required' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  }
 
-  const supabase = createClient(Deno.env.get('SUPABASE_URL') ?? '', Deno.env.get('SUPABASE_ANON_KEY') ?? '', { global: { headers: { Authorization: authHeader } } });
+  const supabase = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY') ?? '', { global: { headers: { Authorization: authHeader } } });
   const { data: { user }, error: userError } = await supabase.auth.getUser();
-  if (userError || !user) return new Response(JSON.stringify({ error: 'Invalid authorization' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  if (userError || !user) {
+    await admin.from('security_audit_log').insert({ action: 'track_event_denied', resource: 'track-event', success: false, details: { reason: 'invalid_jwt' } });
+    return new Response(JSON.stringify({ error: 'Invalid authorization' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  }
 
   try {
     const body = await req.json();
-    if (!checkRateLimit(user.id)) return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    if (!checkRateLimit(user.id)) {
+      await admin.from('security_audit_log').insert({ user_id: user.id, action: 'track_event_rate_limited', resource: 'track-event', success: false });
+      return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
 
     const { name, props } = body;
     if (!name || typeof name !== 'string') return new Response(JSON.stringify({ error: 'Event name is required' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });

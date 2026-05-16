@@ -20,13 +20,19 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   const authHeader = req.headers.get('Authorization');
-  if (!authHeader) return new Response(JSON.stringify({ success: false, error: 'Authorization required' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-
   const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-  const caller = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY') ?? '', { global: { headers: { Authorization: authHeader } } });
   const admin = createClient(supabaseUrl, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');
+  if (!authHeader) {
+    await admin.from('security_audit_log').insert({ action: 'receipt_ocr_denied', resource: 'extract-receipt', success: false, details: { reason: 'missing_authorization_header' } });
+    return new Response(JSON.stringify({ success: false, error: 'Authorization required' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  }
+
+  const caller = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY') ?? '', { global: { headers: { Authorization: authHeader } } });
   const { data: { user }, error: userError } = await caller.auth.getUser();
-  if (userError || !user) return new Response(JSON.stringify({ success: false, error: 'Invalid authorization' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  if (userError || !user) {
+    await admin.from('security_audit_log').insert({ action: 'receipt_ocr_denied', resource: 'extract-receipt', success: false, details: { reason: 'invalid_jwt' } });
+    return new Response(JSON.stringify({ success: false, error: 'Invalid authorization' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  }
 
   try {
     const { imageBase64 } = await req.json();
